@@ -73,8 +73,7 @@ class Account {
   fetchDetails() {
     return fetch(ACCOUNT_URL + this.address).then(response => {
       return response.json();
-    }).then(result => {
-      const details = result.props.data;
+    }).then(details => {
       if('error' in details.info) {
         details.info.balance = '0';
         details.history = [];
