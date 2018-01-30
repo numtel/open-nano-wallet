@@ -158,7 +158,7 @@ class Account {
         representative: DEFAULT_REPRESENTATIVE,
         work: result.work,
         amount: sendBlock.amount,
-        account: sendBlock.account,
+        account: this.address,
       });
       rendered = block.sign(this.key);
       return this.publishBlock(rendered.msg);
@@ -170,6 +170,7 @@ class Account {
 
       // Add finished block to chain
       block.params.hash = rendered.hash;
+      block.params.account = sendBlock.account; // instead of self from open
       block.params.type = 'receive'; // open becomes receive on frontend
 
       this.detailsCache.history.unshift(block.params);
