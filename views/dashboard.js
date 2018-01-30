@@ -104,7 +104,7 @@ window.views.dashboard = function() {
         .filter(blk => blk.hash === el.getAttribute('data-hash'))[0];
       account.acceptPending(block)
         .then(result => this.render())
-//         .catch(reason => alert(reason));
+        .catch(reason => alert(reason));
       this.render();
     },
     '#mainMenu a.account click': (e, tpl, el) => {
