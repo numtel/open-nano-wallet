@@ -44,7 +44,7 @@ Resources:
           const https = require('https');
 
           exports.handler = function(event, context, callback) {
-            https.get('https://www.raiblocks.club/api/account?id=' + event.address, (res) => {
+            https.get('https://www.nanode.co/api/account?id=' + event.address, (res) => {
               if(res.statusCode !== 200)
                 callback('invalid_account');
 

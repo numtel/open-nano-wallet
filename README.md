@@ -1,12 +1,12 @@
 # XRB Light Wallet
 
-[Raiblocks](https://raiblocks.net) wallet that runs without a full node.
+[Nano](https://nano.org) (Formerly [Raiblocks](https://raiblocks.net)) wallet that runs without a full node.
 
 ## How It Works
 
 Backend services are comprised of [2 very simple AWS Lambda functions](api.yml):
 
-1. `/account` Transaction history is gleaned from the [Raiblocks.club block explorer](https://www.raiblocks.club)
+1. `/account` Transaction history is gleaned from the [nanode.co block explorer](https://www.nanode.co)
 2. `/publish` New blocks are published to the network using a generic UDP publisher
 
 The frontend may be served statically since there is no central wallet database. Wallets are encrypted using a randomly generated salt and your given password then kept in the browser's `localStorage`.

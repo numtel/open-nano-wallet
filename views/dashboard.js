@@ -44,13 +44,13 @@ window.views.dashboard = function() {
         <dl>
           <dt>Pending:</dt>
           <dd>
-            <a href="https://www.raiblocks.club/block/$${block.hash}" title="View block on explorer">
+            <a href="https://www.nanode.co/block/$${block.hash}" title="View block on explorer">
               Block $${index}
             </a>
           </dd>
           <dt>From:</dt>
           <dd class="dont-break-out">
-            <a href="https://www.raiblocks.club/account/$${block.account}">
+            <a href="https://www.nanode.co/account/$${block.account}">
               $${block.account}
             </a>
           </dd>
@@ -68,13 +68,13 @@ window.views.dashboard = function() {
         <dl>
           <dt>$${block.type.charAt(0).toUpperCase() + block.type.slice(1)}:</dt>
           <dd>
-            <a href="https://www.raiblocks.club/block/$${block.hash}" title="View block on explorer">
+            <a href="https://www.nanode.co/block/$${block.hash}" title="View block on explorer">
               Block $${index}
             </a>
           </dd>
           <dt>${ block.type === 'send' ? 'To' : 'From' }:</dt>
           <dd class="dont-break-out">
-            <a href="https://www.raiblocks.club/account/$${block.account}">
+            <a href="https://www.nanode.co/account/$${block.account}">
               $${block.account}
             </a>
           </dd>
