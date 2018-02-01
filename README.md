@@ -2,6 +2,8 @@
 
 [Nano](https://nano.org) (Formerly [Raiblocks](https://raiblocks.net)) wallet that runs without a full node.
 
+[View GitHub hosted instance](https://numtel.github.io/xrb-light-wallet)
+
 ## How It Works
 
 Backend services are comprised of [2 very simple AWS Lambda functions](api.yml):
