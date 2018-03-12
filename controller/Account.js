@@ -112,41 +112,18 @@ class Account {
         });
     } else {
       this.data.workHash = nextWorkHash;
-      this.data.workValue = null;
-			return this.data.workValue = new Promise((resolve, reject) => {
-        let finished = data => {
-          // Do not execute this callback again if WebGL returned before
-          // it was able to be stopped
-          if(finished === null) return;
-
-          finished = null;        // In case of WebAssembly finishing first
-          pow_terminate(workers); // In case of WebGL finishing first
-
+      return this.data.workValue = this.wallet.app.queueWork(nextWorkHash)
+        .then(data => {
           if(this.data.workHash === nextWorkHash)
             this.data.workValue = data;
 
           this.wallet.app.saveWallet();
 
-          resolve({
+          return {
             details: this.detailsCache,
             work: data
-          });
-        }
-
-        const workers = pow_initiate(undefined, 'dist/RaiBlocksWebAssemblyPoW/');
-        pow_callback(workers, nextWorkHash, () => {}, finished);
-
-        try {
-          NanoWebglPow(nextWorkHash, finished, function(n) {
-            // If WebAssembly finished first, do not continue with WebGL
-            if(finished === null) return true;
-          });
-        } catch(error) {
-          if(error.message === 'webgl2_required') {
-            // Do nothing, WebAssembly is calculating as well
-          } else throw error;
-        }
-      });
+          };
+        });
     }
   }
 

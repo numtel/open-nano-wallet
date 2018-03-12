@@ -8,6 +8,8 @@ class App {
     this.mode = null;
     this.walletName = null; // For localStorage
     this.walletPassword = null;
+    this.pendingWorkHashes = [];
+    this.workQueuePromise = null;
 
     // Views are contained in separate files
     this.views = Object.keys(window.views).reduce((out, cur) => {
@@ -32,6 +34,53 @@ class App {
     } else {
       this.element.appendChild(this.views.dashboard());
     }
+  }
+  queueWork(hash) {
+    this.pendingWorkHashes.push(hash);
+    return this.processWorkQueue().then(result => {
+      if(result.hash === hash) return result.work;
+      // Continue processing if the returned value wasn't for this hash
+      return this.processWorkQueue();
+    });
+  }
+  processWorkQueue() {
+    if(this.pendingWorkHashes.length === 0)
+      return null;
+
+    // Only process one generation at a time
+    if(this.workQueuePromise !== null)
+      return this.workQueuePromise;
+
+    const nextWorkHash = this.pendingWorkHashes.shift();
+    return this.workQueuePromise = new Promise((resolve, reject) => {
+      console.log('beginning', nextWorkHash);
+      let finished = data => {
+        console.log('finished', nextWorkHash);
+        // Do not execute this callback again if WebGL returned before
+        // it was able to be stopped
+        if(finished === null) return;
+
+        finished = null;        // In case of WebAssembly finishing first
+        pow_terminate(workers); // In case of WebGL finishing first
+
+        this.workQueuePromise = null;
+        resolve({ hash: nextWorkHash, work: data });
+      }
+
+      const workers = pow_initiate(undefined, 'dist/RaiBlocksWebAssemblyPoW/');
+      pow_callback(workers, nextWorkHash, () => {}, finished);
+
+      try {
+        NanoWebglPow(nextWorkHash, finished, function(n) {
+          // If WebAssembly finished first, do not continue with WebGL
+          if(finished === null) return true;
+        });
+      } catch(error) {
+        if(error.message === 'webgl2_required') {
+          // Do nothing, WebAssembly is calculating as well
+        } else throw error;
+      }
+    });
   }
   listWalletNames() {
     const wallets = LOCALSTORAGE_KEY in localStorage ? JSON.parse(localStorage[LOCALSTORAGE_KEY]) : {};
