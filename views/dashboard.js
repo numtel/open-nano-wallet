@@ -86,7 +86,7 @@ window.views.dashboard = function() {
       </li>`).join('') : '' }
     </ol>`, {
     '.showActions, #actions click': (e, tpl) =>
-      tpl.querySelector('#actions').classList.toggle('hidden'),
+      !account.loading && tpl.querySelector('#actions').classList.toggle('hidden'),
     '.refresh click': e => {
       account.refresh()
         .then(() => this.render())

@@ -7,7 +7,7 @@ window.views.signIn = function() {
 
   return buildTemplate(html`
     <form method="post">
-      <h1>XRB Wallet</h1>
+      <h1>Nano Wallet</h1>
       <ul class="wallets">
       ${walletNames.map(name => html`
         <li><a href="#">$${name}</a></li>
@@ -27,7 +27,7 @@ window.views.signIn = function() {
 window.views.passwordForm = function() {
   return buildTemplate(html`
     <form id="send" method="post">
-      <h2>Log In</h2>
+      <h2>Log In: $${this.walletName}</h2>
       <label>
         <span>Password</span>
         <input name="password" type="password" />

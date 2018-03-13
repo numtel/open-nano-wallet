@@ -1,5 +1,7 @@
 const LOCALSTORAGE_KEY = 'xrb_wallets';
 
+class RedeemCodeError extends Error {}
+
 class App {
   constructor(element, wallet) {
     this.element = element;
@@ -11,13 +13,20 @@ class App {
     this.pendingWorkHashes = [];
     this.workQueuePromise = null;
 
+    this.redeemCode = new Redeem;
+    console.log(this);
+
     // Views are contained in separate files
     this.views = Object.keys(window.views).reduce((out, cur) => {
       out[cur] = window.views[cur].bind(this);
       return out;
     }, {});
 
-    this.render(this.wallet ? null : this.views.signIn());
+    this.render(
+      this.redeemCode.details ? this.views.redeem(this.redeemCode) :
+      this.wallet ? null : // default to dashboard
+      this.views.signIn()
+    );
 
     document.addEventListener('keyup', e => {
       if(e.code === 'Escape') this.render();
