@@ -182,7 +182,6 @@ class Account {
 
     const adhocPrivkey = nacl.randomBytes(32);
     const adhocPublic = adhocAccount(adhocPrivkey);
-    console.log(uint8_hex(adhocPrivkey), adhocPublic);
 
     return this.fetchWork().then(result => {
       const newBalance =
@@ -226,7 +225,6 @@ class Account {
       } else {
         redeemCodeValue = uint8_b64(redeemCodeValue);
       }
-      console.log(redeemCodeValue);
 
       this.data.redeemSends[sendRendered.hash] = redeemCodeValue;
       this.wallet.app.saveWallet();

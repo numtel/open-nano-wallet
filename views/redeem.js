@@ -63,7 +63,6 @@ window.views.redeem = function(redeemCode) {
           redeemCode.send(sendParams.recipient).then(block => {
             el.classList.remove('sending');
             el.classList.add('complete');
-            console.log(block);
           });
         }
 

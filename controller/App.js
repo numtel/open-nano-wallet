@@ -15,7 +15,6 @@ class App {
     this.baseHref = `${location.protocol}//${location.host}${location.pathname}`;
 
     this.redeemCode = new Redeem;
-    console.log(this);
 
     // Views are contained in separate files
     this.views = Object.keys(window.views).reduce((out, cur) => {
