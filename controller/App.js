@@ -96,6 +96,21 @@ class App {
     const wallets = LOCALSTORAGE_KEY in localStorage ? JSON.parse(localStorage[LOCALSTORAGE_KEY]) : {};
     return Object.keys(wallets);
   }
+  exportWallet() {
+    const wallets = LOCALSTORAGE_KEY in localStorage ? JSON.parse(localStorage[LOCALSTORAGE_KEY]) : {};
+    if(!(this.walletName in wallets))
+      throw new Error('INVALID_WALLET');
+
+    saveTextAs(JSON.stringify(wallets[this.walletName]), this.walletName + '.json');
+  }
+  importWallet(name, data) {
+    const json = new TextEncoder().encode(JSON.stringify(this.wallet));
+    const wallets = LOCALSTORAGE_KEY in localStorage ? JSON.parse(localStorage[LOCALSTORAGE_KEY]) : {};
+    if(!(typeof data === 'object' && 'box' in data && 'salt' in data))
+      throw new Error('INVALID_WALLET');
+    wallets[name] = data;
+    localStorage[LOCALSTORAGE_KEY] = JSON.stringify(wallets);
+  }
   saveWallet() {
     const json = new TextEncoder().encode(JSON.stringify(this.wallet));
     const wallets = LOCALSTORAGE_KEY in localStorage ? JSON.parse(localStorage[LOCALSTORAGE_KEY]) : {};
