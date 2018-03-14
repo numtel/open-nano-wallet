@@ -38,7 +38,7 @@ window.views.manageAccount = function(currentAccount, hasCancel) {
       else addr.innerHTML = accountPair(this.wallet.params.seed, el.value).address;
     },
     'button.delist click': e => {
-      if(confirm('No funds change when delisting an account. It may be added again by choosing the same index.')) {
+      if(confirm('No funds change when delisting an account.\n\nIt may be added again by choosing the same index.\n\nAny redeemable links will be lost unless backed up.')) {
         this.wallet.params.accounts.splice(this.selectedAccount, 1);
         this.selectedAccount = 0;
       }

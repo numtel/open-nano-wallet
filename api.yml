@@ -37,21 +37,29 @@ Resources:
     Properties:
       Handler: index.handler
       Role: !GetAtt LambdaRole.Arn
-      Timeout: 3
+      Timeout: 20
       Runtime: nodejs6.10
       Code:
         ZipFile: !Sub |
           const https = require('https');
 
           exports.handler = function(event, context, callback) {
-            https.get('https://www.nanode.co/api/account?id=' + event.address, (res) => {
-              if(res.statusCode !== 200)
-                callback('invalid_account');
+            const url = event.address ?
+              'https://www.nanode.co/api/account?id=' + event.address :
+              'https://www.nanode.co/api/block?id=' + event.block;
+
+            https.get(url, (res) => {
+              console.log(event, res.statusCode);
+              if(event.address && res.statusCode !== 200 && res.statusCode !== 304) {
+                console.log(event, res.statusCode);
+                return callback('invalid_account');
+              }
 
               res.setEncoding('utf8');
               let rawData = '';
               res.on('data', (chunk) => { rawData += chunk; });
               res.on('end', () => {
+                if(rawData === '') return callback('not_found');
                 callback(null, JSON.parse(rawData));
               });
 
@@ -133,7 +141,8 @@ Resources:
           application/json: !Sub |
             #set($inputRoot = $input.path('$'))
             {
-              "address": "$input.params('a')"
+              "address": "$input.params('a')",
+              "block": "$input.params('b')"
             }
       MethodResponses:
         - StatusCode: '200'

@@ -1,5 +1,7 @@
 const LOCALSTORAGE_KEY = 'xrb_wallets';
 
+class RedeemCodeError extends Error {}
+
 class App {
   constructor(element, wallet) {
     this.element = element;
@@ -8,6 +10,12 @@ class App {
     this.mode = null;
     this.walletName = null; // For localStorage
     this.walletPassword = null;
+    this.pendingWorkHashes = [];
+    this.workQueuePromise = null;
+    this.baseHref = `${location.protocol}//${location.host}${location.pathname}`;
+
+    this.redeemCode = new Redeem;
+    console.log(this);
 
     // Views are contained in separate files
     this.views = Object.keys(window.views).reduce((out, cur) => {
@@ -15,7 +23,11 @@ class App {
       return out;
     }, {});
 
-    this.render(this.wallet ? null : this.views.signIn());
+    this.render(
+      this.redeemCode.raw ? this.views.redeem(this.redeemCode) :
+      this.wallet ? null : // default to dashboard
+      this.views.signIn()
+    );
 
     document.addEventListener('keyup', e => {
       if(e.code === 'Escape') this.render();
@@ -33,26 +45,76 @@ class App {
       this.element.appendChild(this.views.dashboard());
     }
   }
+  queueWork(hash) {
+    this.pendingWorkHashes.push(hash);
+    return this.processWorkQueue().then(result => {
+      if(result.hash === hash) return result.work;
+      // Continue processing if the returned value wasn't for this hash
+      return this.processWorkQueue();
+    });
+  }
+  processWorkQueue() {
+    if(this.pendingWorkHashes.length === 0)
+      return null;
+
+    // Only process one generation at a time
+    if(this.workQueuePromise !== null)
+      return this.workQueuePromise;
+
+    const nextWorkHash = this.pendingWorkHashes.shift();
+    return this.workQueuePromise = new Promise((resolve, reject) => {
+      console.log('beginning', nextWorkHash);
+      let finished = data => {
+        console.log('finished', nextWorkHash);
+        // Do not execute this callback again if WebGL returned before
+        // it was able to be stopped
+        if(finished === null) return;
+
+        finished = null;        // In case of WebAssembly finishing first
+        pow_terminate(workers); // In case of WebGL finishing first
+
+        this.workQueuePromise = null;
+        resolve({ hash: nextWorkHash, work: data });
+      }
+
+      const workers = pow_initiate(undefined, 'dist/RaiBlocksWebAssemblyPoW/');
+      pow_callback(workers, nextWorkHash, () => {}, finished);
+
+      try {
+        NanoWebglPow(nextWorkHash, finished, function(n) {
+          // If WebAssembly finished first, do not continue with WebGL
+          if(finished === null) return true;
+        });
+      } catch(error) {
+        if(error.message === 'webgl2_required') {
+          // Do nothing, WebAssembly is calculating as well
+        } else throw error;
+      }
+    });
+  }
   listWalletNames() {
     const wallets = LOCALSTORAGE_KEY in localStorage ? JSON.parse(localStorage[LOCALSTORAGE_KEY]) : {};
     return Object.keys(wallets);
   }
-  saveWallet() {
-    const salt = nacl.randomBytes(16);
-    const pw = new TextEncoder().encode(this.walletPassword);
-    const hashInput = new Uint8Array(salt.length + pw.length);
-    hashInput.set(salt, 0);
-    hashInput.set(pw, salt.length);
-    const hash = nacl.hash(hashInput);
-
-    const nonce = hash.slice(0, 24);
-    const key = hash.slice(24, 56);
-    const json = new TextEncoder().encode(JSON.stringify(this.wallet));
-
-    const box = nacl.secretbox(json, nonce, key);
-
+  exportWallet() {
     const wallets = LOCALSTORAGE_KEY in localStorage ? JSON.parse(localStorage[LOCALSTORAGE_KEY]) : {};
-    wallets[this.walletName] = { salt: uint8_b64(salt), box: uint8_b64(box) };
+    if(!(this.walletName in wallets))
+      throw new Error('INVALID_WALLET');
+
+    saveTextAs(JSON.stringify(wallets[this.walletName]), this.walletName + '.json');
+  }
+  importWallet(name, data) {
+    const json = new TextEncoder().encode(JSON.stringify(this.wallet));
+    const wallets = LOCALSTORAGE_KEY in localStorage ? JSON.parse(localStorage[LOCALSTORAGE_KEY]) : {};
+    if(!(typeof data === 'object' && 'box' in data && 'salt' in data))
+      throw new Error('INVALID_WALLET');
+    wallets[name] = data;
+    localStorage[LOCALSTORAGE_KEY] = JSON.stringify(wallets);
+  }
+  saveWallet() {
+    const json = new TextEncoder().encode(JSON.stringify(this.wallet));
+    const wallets = LOCALSTORAGE_KEY in localStorage ? JSON.parse(localStorage[LOCALSTORAGE_KEY]) : {};
+    wallets[this.walletName] = encrypt(json, this.walletPassword);
     localStorage[LOCALSTORAGE_KEY] = JSON.stringify(wallets);
   }
   removeWallet(original, newName) {
@@ -72,18 +134,7 @@ class App {
       throw new Error('INVALID_WALLET');
 
     const data = wallets[this.walletName];
-
-    const salt = b64_uint8(data.salt);
-    const pw = new TextEncoder().encode(this.walletPassword);
-    const hashInput = new Uint8Array(salt.length + pw.length);
-    hashInput.set(salt, 0);
-    hashInput.set(pw, salt.length);
-    const hash = nacl.hash(hashInput);
-
-    const nonce = hash.slice(0, 24);
-    const key = hash.slice(24, 56);
-    const box = b64_uint8(data.box);
-    const open = nacl.secretbox.open(box, nonce, key);
+    const open = decrypt(data.salt, data.box, this.walletPassword);
 
     this.wallet = new Wallet(this, JSON.parse(new TextDecoder().decode(open)));
   }

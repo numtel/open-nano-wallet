@@ -10,17 +10,38 @@
   -webkit-hyphens: auto;
   hyphens: auto;
 }
+.ellipsis {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
 body { position: relative; margin: 0 0 50px; padding: 0; font-family: sans-serif; }
 
 form { max-width: 360px; margin: 0 auto 30px; padding: 30px; box-shadow:0 1px 4px #ccc; text-align:center; }
-form h1 { margin: -30px -30px 10px; padding: 30px; font-size: 180%; background: #ffc; }
-form h2 { margin: -30px -30px 10px; padding: 10px 30px; font-size: 140%; background: #ffc; }
+form h1 { margin: -30px -30px 20px; padding: 30px; font-size: 180%; background: #ffc; }
+form h2 { margin: -30px -30px 20px; padding: 10px 30px; font-size: 140%; background: #ffc; }
 form label { display: block; text-align: left; padding: 0 0 10px;}
 form label span { display:block; }
 form label span:after { content: ":" }
 form label input { width: 100%; border: 1px solid #eee; padding: 5px; }
+form label.check { cursor: pointer; }
+form label.check span { display: inline; }
+form label.check span:after { content: none; }
+form label.check input { width: auto; }
 form label p { margin: 4px 0; font-size: 85%; color: #666; }
-form button {}
+
+#redeem .balance { font-size: 120%; }
+#redeem .account a { color: #666; font-size: 85%; }
+#redeem.sending { background: #ffc url(../img/ajax-loader.gif) no-repeat center center; }
+#redeem.sending>* { visibility: hidden; }
+#redeem .complete,
+#redeem.complete>:not(.complete) { display: none; }
+#redeem.complete .complete,
+#redeem.complete h2:not(.hidden) { display: block; }
+
+#send>.selDep { display:none; }
+#send.xrb_address>.xrb_address,
+#send.redeem_url>.redeem_url { display: inherit; }
 
 #currentAccount { background: #ffc; border-bottom: 1px solid #ddd; padding: 10px; box-shadow: 0 2px 4px #ccc; font-size:110%; }
 #currentAccount .showMenu { color: #333; float: left; padding: 4px; }
@@ -63,6 +84,9 @@ ul.wallets a:hover { box-shadow: 0 0 5px #555; }
 #history dl { margin: 0; }
 #history dt { float:left; padding-right: 5px; min-width: 80px; }
 #history li>i { position: absolute; top: 13px; left: 9px; }
+
+#landing p { clear:both; padding-bottom: 30px; }
+#landing i { float:left; }
 
 @media (min-width:640px) {
   form { margin-top: 30px; }

@@ -44,13 +44,13 @@ window.views.dashboard = function() {
         <dl>
           <dt>Pending:</dt>
           <dd>
-            <a href="https://www.nanode.co/block/$${block.hash}" title="View block on explorer">
+            <a class="external" href="https://www.nanode.co/block/$${block.hash}" title="View block on explorer">
               Block $${index}
             </a>
           </dd>
           <dt>From:</dt>
           <dd class="dont-break-out">
-            <a href="https://www.nanode.co/account/$${block.account}">
+            <a class="external" href="https://www.nanode.co/account/$${block.account}">
               $${block.account}
             </a>
           </dd>
@@ -68,16 +68,24 @@ window.views.dashboard = function() {
         <dl>
           <dt>$${block.type.charAt(0).toUpperCase() + block.type.slice(1)}:</dt>
           <dd>
-            <a href="https://www.nanode.co/block/$${block.hash}" title="View block on explorer">
+            <a class="external" href="https://www.nanode.co/block/$${block.hash}" title="View block on explorer">
               Block $${index}
             </a>
           </dd>
           <dt>${ block.type === 'send' ? 'To' : 'From' }:</dt>
           <dd class="dont-break-out">
-            <a href="https://www.nanode.co/account/$${block.account}">
+            <a class="external" href="https://www.nanode.co/account/$${block.account}">
               $${block.account}
             </a>
           </dd>
+          ${ block.hash in account.data.redeemSends ? html`
+            <dt>Redeem:</dt>
+            <dd class="ellipsis">
+              <a class="external" href="$${account.wallet.app.baseHref}?redeem=$${account.data.redeemSends[block.hash]}">
+                $${account.wallet.app.baseHref}?redeem=$${account.data.redeemSends[block.hash]}
+              </a>
+            </dd>
+          ` : ''}
           <dt>Amount:</dt>
           <dd>$${block.amountXrb ? block.amountXrb : ''}</dd>
           <dt>Balance:</dt>
@@ -85,8 +93,9 @@ window.views.dashboard = function() {
         </dl>
       </li>`).join('') : '' }
     </ol>`, {
+    'a.external click': (e, tpl, el) => externalLink(el.href),
     '.showActions, #actions click': (e, tpl) =>
-      tpl.querySelector('#actions').classList.toggle('hidden'),
+      !account.loading && tpl.querySelector('#actions').classList.toggle('hidden'),
     '.refresh click': e => {
       account.refresh()
         .then(() => this.render())

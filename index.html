@@ -1,22 +1,25 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-<title>XRB Light Wallet</title>
+<title>Open Nano Wallet</title>
 
 <script src="dist/big.min.js"></script>
 <script src="dist/nacl.js"></script>
 <script src="dist/blake2b.js"></script>
 <script src="dist/encoding.js"></script>
 <script src="dist/nano-webgl-pow.js"></script>
+<script src="dist/FileSaver.js"></script>
 <script src="functions.js"></script>
 
 <script src="dist/RaiBlocksWebAssemblyPoW/startThreads.js"></script>
 
+<script src="controller/Redeem.js"></script>
 <script src="controller/Wallet.js"></script>
 <script src="controller/Account.js"></script>
 <script src="controller/Block.js"></script>
 
 <script src="views/signIn.js"></script>
+<script src="views/redeem.js"></script>
 <script src="views/manageAccount.js"></script>
 <script src="views/setRepresentative.js"></script>
 <script src="views/sendForm.js"></script>
@@ -28,11 +31,17 @@
 </head>
 <body>
 <div id="wallet"></div>
-<p id="footnote"><a href="https://github.com/numtel/xrb-light-wallet">View source on GitHub</a></p>
+<p id="footnote">Looking for help or to contribute? <a href="https://github.com/numtel/open-nano-wallet">View repository on GitHub</a></p>
 <script>
-ACCOUNT_URL = 'https://69svf1d4r4.execute-api.us-west-1.amazonaws.com/main/account?a=';
-PUBLISH_URL = 'https://69svf1d4r4.execute-api.us-west-1.amazonaws.com/main/publish?msg=';
+ACCOUNT_URL = 'https://bvd9a9mbt3.execute-api.us-west-1.amazonaws.com/main/account?a=';
+BLOCK_URL = 'https://bvd9a9mbt3.execute-api.us-west-1.amazonaws.com/main/account?b=';
+PUBLISH_URL = 'https://bvd9a9mbt3.execute-api.us-west-1.amazonaws.com/main/publish?msg=';
 new App(document.querySelector('#wallet'));
+
+document.querySelector('#footnote a').addEventListener('click', e => {
+  e.preventDefault();
+  externalLink(e.target.href);
+}, false);
 </script>
 </body>
 </html>

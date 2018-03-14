@@ -33,6 +33,7 @@ class Account {
     this.data = Object.assign({
       workHash: null,
       workValue: null,
+      redeemSends: {},
       name: 'Account #' + data.index
     }, data);
 
@@ -74,9 +75,11 @@ class Account {
     return fetch(ACCOUNT_URL + this.address).then(response => {
       return response.json();
     }).then(details => {
-      if('error' in details.info) {
+      if('error' in details.info && details.info.error === 'Account not found') {
         details.info.balance = '0';
         details.history = [];
+      } else if('error' in details.info) {
+        throw new Error(details.info.error);
       }
 
       // Add balance to each block, convert amounts to Xrb
@@ -102,61 +105,28 @@ class Account {
     const nextWorkHash = (this.detailsCache.history.length === 0 ?
       keyFromAccount(this.address) : this.detailsCache.info.frontier);
 
-    if(this.data.workHash === nextWorkHash && this.data.workValue !== null) {
-      if(this.data.workValue instanceof Promise)
+    if(this.data.workHash === nextWorkHash && this.data.workValue instanceof Promise) {
         return this.data.workValue;
-      else if(typeof this.data.workValue === 'string')
+    } else if(this.data.workHash === nextWorkHash && typeof this.data.workValue === 'string') {
         return Promise.resolve({
           work: this.data.workValue,
           details: this.detailsCache
         });
     } else {
       this.data.workHash = nextWorkHash;
-      this.data.workValue = null;
-			return this.data.workValue = new Promise((resolve, reject) => {
-        let finished = data => {
-          // Do not execute this callback again if WebGL returned before
-          // it was able to be stopped
-          if(finished === null) return;
-
-          finished = null;        // In case of WebAssembly finishing first
-          pow_terminate(workers); // In case of WebGL finishing first
-
+      return this.data.workValue = this.wallet.app.queueWork(nextWorkHash)
+        .then(data => {
           if(this.data.workHash === nextWorkHash)
             this.data.workValue = data;
 
           this.wallet.app.saveWallet();
 
-          resolve({
+          return {
             details: this.detailsCache,
             work: data
-          });
-        }
-
-        const workers = pow_initiate(undefined, 'dist/RaiBlocksWebAssemblyPoW/');
-        pow_callback(workers, nextWorkHash, () => {}, finished);
-
-        try {
-          NanoWebglPow(nextWorkHash, finished, function(n) {
-            // If WebAssembly finished first, do not continue with WebGL
-            if(finished === null) return true;
-          });
-        } catch(error) {
-          if(error.message === 'webgl2_required') {
-            // Do nothing, WebAssembly is calculating as well
-          } else throw error;
-        }
-      });
+          };
+        });
     }
-  }
-
-  /*
-    Publish a block to backend
-    @param  block        Block  rendered block
-    @return Promise
-   */
-  publishBlock(block) {
-    return fetch(PUBLISH_URL + block)
   }
 
   acceptPending(sendBlock) {
@@ -180,7 +150,7 @@ class Account {
         account: this.address,
       });
       rendered = block.sign(this.key);
-      return this.publishBlock(rendered.msg);
+      return publishBlock(rendered, PUBLISH_RETRIES);
     }).then(result => {
       this.detailsCache.info.frontier = rendered.hash;
       // Update balances
@@ -202,6 +172,90 @@ class Account {
       this.fetchWork(); // Get ready for next transaction
       this.loading = false;
       return block.params;
+    });
+  }
+
+  sendToRedeemUrl(amount, password) {
+    let sendBlock, openBlock, redeemCodeValue;
+    let sendRendered, openRendered;
+    this.loading = true;
+
+    const adhocPrivkey = nacl.randomBytes(32);
+    const adhocPublic = adhocAccount(adhocPrivkey);
+    console.log(uint8_hex(adhocPrivkey), adhocPublic);
+
+    return this.fetchWork().then(result => {
+      const newBalance =
+        Big(result.details.info.balance)
+          .minus(xrbToRaw(amount))
+          .toFixed();
+
+      if(Big(newBalance).lt(0))
+        throw new BlockError('INSUFFICIENT_BALANCE');
+
+      sendBlock = new Block({
+        type: 'send',
+        previous: result.details.info.frontier,
+        destination: adhocPublic.address,
+        balance: zeroPad(dec2hex(newBalance), 32),
+        work: result.work,
+        amount: xrbToRaw(amount),
+        account: adhocPublic.address,
+      });
+      sendRendered = sendBlock.sign(this.key);
+      return this.wallet.app.queueWork(adhocPublic.pubkey);
+    })
+    .then(result => {
+      openBlock = new Block({
+        type: 'open',
+        source: sendRendered.hash,
+        representative: DEFAULT_REPRESENTATIVE,
+        work: result,
+        amount: xrbToRaw(amount),
+        account: adhocPublic.address,
+      });
+      openRendered = openBlock.sign(uint8_hex(adhocPrivkey));
+      return this.wallet.app.queueWork(openRendered.hash);
+    })
+    .then(result => {
+      redeemCodeValue = concat_uint8([adhocPrivkey, hex_uint8(result)]);
+
+      if(password) {
+        const encrypted = encrypt(redeemCodeValue, password);
+        redeemCodeValue = encrypted.salt + ':' + encrypted.box;
+      } else {
+        redeemCodeValue = uint8_b64(redeemCodeValue);
+      }
+      console.log(redeemCodeValue);
+
+      this.data.redeemSends[sendRendered.hash] = redeemCodeValue;
+      this.wallet.app.saveWallet();
+
+      return publishBlock(sendRendered, PUBLISH_RETRIES);
+    })
+    .then(result => {
+      if('errorMessage' in result)
+        throw new BlockError('PUBLISH_1_FAILED');
+
+      return publishBlock(openRendered, PUBLISH_RETRIES);
+    })
+    .then(result => {
+      if('errorMessage' in result)
+        throw new BlockError('PUBLISH_2_FAILED');
+
+      this.detailsCache.info.frontier = sendRendered.hash;
+      // Update balance
+      this.detailsCache.info.balance =
+        Big(this.detailsCache.info.balance).minus(sendBlock.params.amount).toFixed();
+
+      // Add finished block to chain
+      sendBlock.params.hash = sendRendered.hash;
+      this.detailsCache.history.unshift(sendBlock.params);
+      extraBlockValues(this.detailsCache, 0);
+
+      this.fetchWork(); // Get ready for next transaction
+      this.loading = false;
+      return sendBlock.params;
     });
   }
 
@@ -228,7 +282,7 @@ class Account {
         account: recipient,
       });
       rendered = block.sign(this.key);
-      return this.publishBlock(rendered.msg);
+      return publishBlock(rendered, PUBLISH_RETRIES);
     }).then(result => {
       this.detailsCache.info.frontier = rendered.hash;
       // Update balance
@@ -264,7 +318,7 @@ class Account {
         work: result.work,
       });
       rendered = block.sign(this.key);
-      return this.publishBlock(rendered.msg);
+      return publishBlock(rendered, PUBLISH_RETRIES);
     }).then(result => {
       // Change blocks are not displayed in transaction history
       this.detailsCache.info.frontier = rendered.hash;
