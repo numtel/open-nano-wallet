@@ -5,6 +5,13 @@ const BLOCK_PUBLISH_TIME = 5000;
 // Try an publish 5 times before giving up
 const PUBLISH_RETRIES = 5;
 
+function externalLink(href) {
+  // All external links must open without allowing access back to this page
+  const newTab = window.open();
+  newTab.opener = null;
+  newTab.location = href;
+}
+
 function encrypt(msg, password) {
   const salt = nacl.randomBytes(16);
   const pw = new TextEncoder().encode(password);

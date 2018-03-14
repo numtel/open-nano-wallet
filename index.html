@@ -37,6 +37,11 @@ ACCOUNT_URL = 'https://bvd9a9mbt3.execute-api.us-west-1.amazonaws.com/main/accou
 BLOCK_URL = 'https://bvd9a9mbt3.execute-api.us-west-1.amazonaws.com/main/account?b=';
 PUBLISH_URL = 'https://bvd9a9mbt3.execute-api.us-west-1.amazonaws.com/main/publish?msg=';
 new App(document.querySelector('#wallet'));
+
+document.querySelector('#footnote a').addEventListener('click', e => {
+  e.preventDefault();
+  externalLink(e.target.href);
+}, false);
 </script>
 </body>
 </html>
