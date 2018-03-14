@@ -1,6 +1,9 @@
 
 class Redeem {
   constructor() {
+    this.raw = getParameterByName('redeem');
+    this.decrypted = null;
+
     this.privkey = null;
     this.pubkey = null;
     this.address = null;
@@ -8,26 +11,33 @@ class Redeem {
     this.details = null;
     this.detailsCache = null;
 
-    const redeemValue = getParameterByName('redeem');
-    if(typeof redeemValue === 'string') {
-
-      let code;
-      try {
-        code = b64_uint8(redeemValue);
-      } catch(error) {
+    if(typeof this.raw === 'string') {
+      const redeemParts = this.raw.split(':');
+      if(redeemParts.length === 1) {
+        this.decrypted = redeemParts[0];
+        this.decode();
+      } else if(redeemParts.length !== 2) {
         this.details = new Error('INVALID_CODE');
       }
+    }
+  }
+  decode() {
+    let code;
+    try {
+      code = b64_uint8(this.decrypted);
+    } catch(error) {
+      this.details = new Error('INVALID_CODE');
+    }
 
-      if(code) {
-        if(code.length === 40) {
-          this.privkey = uint8_hex(code.slice(0, 32));
-          this.work = uint8_hex(code.slice(32, 40));
-          Object.assign(this, adhocAccount(code.slice(0, 32)));
+    if(code) {
+      if(code.length === 40) {
+        this.privkey = uint8_hex(code.slice(0, 32));
+        this.work = uint8_hex(code.slice(32, 40));
+        Object.assign(this, adhocAccount(code.slice(0, 32)));
 
-          this.details = this.fetch();
-        } else {
-          this.details = new Error('INVALID_CODE');
-        }
+        this.details = this.fetch();
+      } else {
+        this.details = new Error('INVALID_CODE');
       }
     }
   }
@@ -59,10 +69,8 @@ class Redeem {
       });
       const rendered = block.sign(this.privkey);
       block.params.hash = rendered.hash;
-      return publishBlock(rendered.msg);
+      return publishBlock(rendered, PUBLISH_RETRIES);
     })
-    .then(() => delay(BLOCK_PUBLISH_TIME))
-    .then(() => fetchBlock(block.params.hash, 3))
     .then(result => {
       if('errorMessage' in result)
         throw new Error('PUBLISH_FAILED');

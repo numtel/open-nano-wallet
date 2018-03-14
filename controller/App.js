@@ -12,6 +12,7 @@ class App {
     this.walletPassword = null;
     this.pendingWorkHashes = [];
     this.workQueuePromise = null;
+    this.baseHref = `${location.protocol}//${location.host}${location.pathname}`;
 
     this.redeemCode = new Redeem;
     console.log(this);
@@ -23,7 +24,7 @@ class App {
     }, {});
 
     this.render(
-      this.redeemCode.details ? this.views.redeem(this.redeemCode) :
+      this.redeemCode.raw ? this.views.redeem(this.redeemCode) :
       this.wallet ? null : // default to dashboard
       this.views.signIn()
     );
@@ -96,21 +97,9 @@ class App {
     return Object.keys(wallets);
   }
   saveWallet() {
-    const salt = nacl.randomBytes(16);
-    const pw = new TextEncoder().encode(this.walletPassword);
-    const hashInput = new Uint8Array(salt.length + pw.length);
-    hashInput.set(salt, 0);
-    hashInput.set(pw, salt.length);
-    const hash = nacl.hash(hashInput);
-
-    const nonce = hash.slice(0, 24);
-    const key = hash.slice(24, 56);
     const json = new TextEncoder().encode(JSON.stringify(this.wallet));
-
-    const box = nacl.secretbox(json, nonce, key);
-
     const wallets = LOCALSTORAGE_KEY in localStorage ? JSON.parse(localStorage[LOCALSTORAGE_KEY]) : {};
-    wallets[this.walletName] = { salt: uint8_b64(salt), box: uint8_b64(box) };
+    wallets[this.walletName] = encrypt(json, this.walletPassword);
     localStorage[LOCALSTORAGE_KEY] = JSON.stringify(wallets);
   }
   removeWallet(original, newName) {
@@ -130,18 +119,7 @@ class App {
       throw new Error('INVALID_WALLET');
 
     const data = wallets[this.walletName];
-
-    const salt = b64_uint8(data.salt);
-    const pw = new TextEncoder().encode(this.walletPassword);
-    const hashInput = new Uint8Array(salt.length + pw.length);
-    hashInput.set(salt, 0);
-    hashInput.set(pw, salt.length);
-    const hash = nacl.hash(hashInput);
-
-    const nonce = hash.slice(0, 24);
-    const key = hash.slice(24, 56);
-    const box = b64_uint8(data.box);
-    const open = nacl.secretbox.open(box, nonce, key);
+    const open = decrypt(data.salt, data.box, this.walletPassword);
 
     this.wallet = new Wallet(this, JSON.parse(new TextDecoder().decode(open)));
   }

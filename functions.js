@@ -2,6 +2,37 @@ const RAW_TO_XRB = '1000000000000000000000000000000';
 const BLOCK_TIMEOUT = 3000;
 // Time in milliseconds to wait before checking if block exists on explorer
 const BLOCK_PUBLISH_TIME = 5000;
+// Try an publish 5 times before giving up
+const PUBLISH_RETRIES = 5;
+
+function encrypt(msg, password) {
+  const salt = nacl.randomBytes(16);
+  const pw = new TextEncoder().encode(password);
+  const hashInput = new Uint8Array(salt.length + pw.length);
+  hashInput.set(salt, 0);
+  hashInput.set(pw, salt.length);
+  const hash = nacl.hash(hashInput);
+
+  const nonce = hash.slice(0, 24);
+  const key = hash.slice(24, 56);
+
+  const box = nacl.secretbox(msg, nonce, key);
+  return { salt: uint8_b64(salt), box: uint8_b64(box) };
+}
+
+function decrypt(saltB64, boxB64, password) {
+  const salt = b64_uint8(saltB64);
+  const pw = new TextEncoder().encode(password);
+  const hashInput = new Uint8Array(salt.length + pw.length);
+  hashInput.set(salt, 0);
+  hashInput.set(pw, salt.length);
+  const hash = nacl.hash(hashInput);
+
+  const nonce = hash.slice(0, 24);
+  const key = hash.slice(24, 56);
+  const box = b64_uint8(boxB64);
+  return nacl.secretbox.open(box, nonce, key);
+}
 
 function fetchBlock(hash, maxTries) {
   return fetch(BLOCK_URL + hash)
@@ -13,8 +44,19 @@ function fetchBlock(hash, maxTries) {
     });
 }
 
-function publishBlock(block) {
-  return fetch(PUBLISH_URL + block)
+function publishBlock(rendered, maxTries) {
+  return fetch(PUBLISH_URL + rendered.msg)
+    .then(result => {
+      if(typeof maxTries === 'number')
+        return delay(BLOCK_PUBLISH_TIME)
+          .then(() => fetchBlock(rendered.hash, 3))
+          .then(result => {
+            if('errorMessage' in result && maxTries > 1)
+              return publishBlock(rendered, maxTries - 1);
+            return result;
+          });
+      return result;
+    });
 }
 
 function getParameterByName(name, url) {
@@ -113,7 +155,7 @@ function formValues(form) {
     if(el.name && el.type === 'checkbox')
       out[el.name] = el.checked;
     else if(el.name && el.type === 'radio')
-      out[el.name] = !(el.name in out) ? out[el.name] :
+      out[el.name] = el.name in out ? out[el.name] :
         Array.prototype.reduce.call(document.getElementsByName(el.name),
           (out, cur) => { if(cur.checked) out = cur.value; return out; }, null);
     else if(el.name)

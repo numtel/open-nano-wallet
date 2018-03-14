@@ -33,6 +33,7 @@ class Account {
     this.data = Object.assign({
       workHash: null,
       workValue: null,
+      redeemSends: {},
       name: 'Account #' + data.index
     }, data);
 
@@ -149,7 +150,7 @@ class Account {
         account: this.address,
       });
       rendered = block.sign(this.key);
-      return publishBlock(rendered.msg);
+      return publishBlock(rendered, PUBLISH_RETRIES);
     }).then(result => {
       this.detailsCache.info.frontier = rendered.hash;
       // Update balances
@@ -174,8 +175,8 @@ class Account {
     });
   }
 
-  sendToRedeemUrl(amount, progressCallback) {
-    let sendBlock, openBlock, redeemSendWork;
+  sendToRedeemUrl(amount, password) {
+    let sendBlock, openBlock, redeemCodeValue;
     let sendRendered, openRendered;
     this.loading = true;
 
@@ -217,19 +218,27 @@ class Account {
       return this.wallet.app.queueWork(openRendered.hash);
     })
     .then(result => {
-      redeemSendWork = result;
-      return publishBlock(sendRendered.msg);
+      redeemCodeValue = concat_uint8([adhocPrivkey, hex_uint8(result)]);
+
+      if(password) {
+        const encrypted = encrypt(redeemCodeValue, password);
+        redeemCodeValue = encrypted.salt + ':' + encrypted.box;
+      } else {
+        redeemCodeValue = uint8_b64(redeemCodeValue);
+      }
+      console.log(redeemCodeValue);
+
+      this.data.redeemSends[sendRendered.hash] = redeemCodeValue;
+      this.wallet.app.saveWallet();
+
+      return publishBlock(sendRendered, PUBLISH_RETRIES);
     })
-    .then(() => delay(BLOCK_PUBLISH_TIME))
-    .then(() => fetchBlock(sendRendered.hash, 3))
     .then(result => {
       if('errorMessage' in result)
         throw new BlockError('PUBLISH_1_FAILED');
 
-      return publishBlock(openRendered.msg);
+      return publishBlock(openRendered, PUBLISH_RETRIES);
     })
-    .then(() => delay(BLOCK_PUBLISH_TIME))
-    .then(() => fetchBlock(openRendered.hash, 3))
     .then(result => {
       if('errorMessage' in result)
         throw new BlockError('PUBLISH_2_FAILED');
@@ -243,7 +252,6 @@ class Account {
       sendBlock.params.hash = sendRendered.hash;
       this.detailsCache.history.unshift(sendBlock.params);
       extraBlockValues(this.detailsCache, 0);
-      console.log(uint8_hex(adhocPrivkey), redeemSendWork, uint8_b64(concat_uint8([adhocPrivkey, hex_uint8(redeemSendWork)])));
 
       this.fetchWork(); // Get ready for next transaction
       this.loading = false;
@@ -274,7 +282,7 @@ class Account {
         account: recipient,
       });
       rendered = block.sign(this.key);
-      return publishBlock(rendered.msg);
+      return publishBlock(rendered, PUBLISH_RETRIES);
     }).then(result => {
       this.detailsCache.info.frontier = rendered.hash;
       // Update balance
@@ -310,7 +318,7 @@ class Account {
         work: result.work,
       });
       rendered = block.sign(this.key);
-      return publishBlock(rendered.msg);
+      return publishBlock(rendered, PUBLISH_RETRIES);
     }).then(result => {
       // Change blocks are not displayed in transaction history
       this.detailsCache.info.frontier = rendered.hash;

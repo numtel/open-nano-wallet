@@ -78,6 +78,14 @@ window.views.dashboard = function() {
               $${block.account}
             </a>
           </dd>
+          ${ block.hash in account.data.redeemSends ? html`
+            <dt>Redeem:</dt>
+            <dd class="ellipsis">
+              <a href="$${account.wallet.app.baseHref}?redeem=$${account.data.redeemSends[block.hash]}">
+                $${account.wallet.app.baseHref}?redeem=$${account.data.redeemSends[block.hash]}
+              </a>
+            </dd>
+          ` : ''}
           <dt>Amount:</dt>
           <dd>$${block.amountXrb ? block.amountXrb : ''}</dd>
           <dt>Balance:</dt>
