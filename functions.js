@@ -232,24 +232,6 @@ function concat_uint8(arrays) {
   return result;
 }
 
-// general functions
-
-function stringFromHex(hex) {
-  var hex = hex.toString();//force conversion
-  var str = '';
-  for (var i = 0; i < hex.length; i += 2)
-    str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-  return str;
-}
-
-function stringToHex(str) {
-  var hex = '';
-  for(var i=0;i<str.length;i++) {
-    hex += ''+str.charCodeAt(i).toString(16);
-  }
-  return hex;
-}
-
 function accountFromHexKey (hex)
 {
   var checksum = '';
@@ -259,23 +241,6 @@ function accountFromHexKey (hex)
   return 'xrb_'+ c_account + checksum;
   
 }
-
-function parseXRBAccount(str)
-{
-  var i = str.indexOf('xrb_');
-  if(i !== -1)
-  {
-    var acc = str.slice(i, i + 64);
-    try{
-      keyFromAccount(acc);
-      return acc;
-    }catch (e){
-      return false;
-    }
-  }
-  return false;
-}
-
 
 function dec2hex(str, bytes = null)
 {
