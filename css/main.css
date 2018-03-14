@@ -85,6 +85,9 @@ ul.wallets a:hover { box-shadow: 0 0 5px #555; }
 #history dt { float:left; padding-right: 5px; min-width: 80px; }
 #history li>i { position: absolute; top: 13px; left: 9px; }
 
+#landing p { clear:both; padding-bottom: 30px; }
+#landing i { float:left; }
+
 @media (min-width:640px) {
   form { margin-top: 30px; }
 }

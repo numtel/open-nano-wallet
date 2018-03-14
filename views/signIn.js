@@ -5,10 +5,24 @@ window.views.signIn = function() {
 
   return buildTemplate(html`
     <form method="post">
-      <h1>Nano Wallet</h1>
+      <h1>Open Nano Wallet</h1>
       ${walletNames.length === 0 ? html`
-        <p>Nano wallet without rai_node RPC</p>
-        <p>Send NANO to anyone, even though without an account yet, using redeemable URL link codes.</p>
+        <div id="landing">
+          <p>
+          <i class="fa fa-bolt fa-3x fa-fw"></i>
+          Publish transactions directly to the NANO peer network.</p>
+          <p>
+          <i class="fa fa-share-alt fa-3x fa-fw"></i>
+          Send NANO to anyone, even those without an account yet, using redeemable URL link codes.</p>
+          <p>
+          <i class="fa fa-lock fa-3x fa-fw"></i>
+          All data stored locally, your keys are completely in your control.</p>
+          <p>
+          <i class="fa fa-user-secret fa-3x fa-fw"></i>
+          GitHub hosted to prove fully open and unmodified source.</p>
+          <p>To get started, select "Create Wallet" to use a new random seed or input a previously generated seed.</p>
+          <p>Alternatively, select "Import Wallet" to select a wallet file exported from this application.</p>
+        </div>
       ` : html`
         <ul class="wallets">
         ${walletNames.map(name => html`
@@ -16,7 +30,6 @@ window.views.signIn = function() {
         `).join('')}
         </ul>
       `}
-      <p>Always keep a backup of your seed value.</p>
       <button type="button" class="createWallet">Create Wallet</button>
       <button type="button" class="importWallet">Import Wallet</button>
       <input id="upload" type="file" class="hidden" />
@@ -59,7 +72,7 @@ window.views.passwordForm = function() {
       </label>
       <button type="submit">Log In</button>
       <button type="button" class="cancel">Cancel</button>
-      <br /><br />
+      <p>Always keep a backup of your seed value.</p>
       <button type="button" class="export">Export</button>
       <button type="button" class="rename">Rename</button>
       <button type="button" class="delete">Delete</button>
