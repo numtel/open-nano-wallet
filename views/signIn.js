@@ -5,23 +5,23 @@ window.views.signIn = function() {
 
   return buildTemplate(html`
     <form method="post">
-      <h1>Open Nano Wallet</h1>
+      <h1>$${__`Open Nano Wallet`}</h1>
       ${walletNames.length === 0 ? html`
         <div id="landing">
           <p>
           <i class="fa fa-bolt fa-3x fa-fw"></i>
-          Publish transactions directly to the NANO peer network.</p>
+          $${__`Publish transactions directly to the NANO peer network.`}</p>
           <p>
           <i class="fa fa-share-alt fa-3x fa-fw"></i>
-          Send NANO to anyone, even those without an account yet, using redeemable URL link codes.</p>
+          $${__`Send NANO to anyone, even those without an account yet, using redeemable URL link codes.`}</p>
           <p>
           <i class="fa fa-lock fa-3x fa-fw"></i>
-          All data stored locally, your keys are completely in your control.</p>
+          $${__`All data stored locally, your keys are completely in your control.`}</p>
           <p>
           <i class="fa fa-user-secret fa-3x fa-fw"></i>
-          GitHub hosted to prove fully open and unmodified source.</p>
-          <p>To get started, select "Create Wallet" to use a new random seed or input a previously generated seed.</p>
-          <p>Alternatively, select "Import Wallet" to select a wallet file exported from this application.</p>
+          $${__`GitHub hosted to prove fully open and unmodified source.`}</p>
+          <p>$${__`To get started, select "Create Wallet" to use a new random seed or input a previously generated seed.`}</p>
+          <p>$${__`Alternatively, select "Import Wallet" to select a wallet file exported from this application.`}</p>
         </div>
       ` : html`
         <ul class="wallets">
@@ -30,8 +30,8 @@ window.views.signIn = function() {
         `).join('')}
         </ul>
       `}
-      <button type="button" class="createWallet">Create Wallet</button>
-      <button type="button" class="importWallet">Import Wallet</button>
+      <button type="button" class="createWallet">$${__`Create Wallet`}</button>
+      <button type="button" class="importWallet">$${__`Import Wallet`}</button>
       <input id="upload" type="file" class="hidden" />
     </form>`, {
     '#upload change': (e, tpl, el) => {
@@ -43,7 +43,7 @@ window.views.signIn = function() {
           this.importWallet(el.files[0].name, JSON.parse(e.target.result));
         } catch(error) {
           console.error(error);
-          alert('This file does not contain a valid exported wallet.');
+          alert(__`This file does not contain a valid exported wallet.`);
           return;
         }
         this.render();
@@ -64,30 +64,31 @@ window.views.signIn = function() {
 window.views.passwordForm = function() {
   return buildTemplate(html`
     <form id="send" method="post">
-      <h2>Log In: $${this.walletName}</h2>
+      <h2>$${__`Log In`}: $${this.walletName}</h2>
       <label>
-        <span>Password</span>
+        <span>$${__`Password`}</span>
         <input name="password" type="password" />
-        <p>Encrypted wallet kept in local browser storage</p>
+        <p>$${__`Encrypted wallet kept in local browser storage`}</p>
       </label>
-      <button type="submit">Log In</button>
-      <button type="button" class="cancel">Cancel</button>
-      <p>Always keep a backup of your seed value.</p>
-      <button type="button" class="export">Export</button>
-      <button type="button" class="rename">Rename</button>
-      <button type="button" class="delete">Delete</button>
+      <button type="submit">$${__`Log In`}</button>
+      <button type="button" class="cancel">$${__`Cancel`}</button>
+      <p>$${__`Always keep a backup of your seed value.`}</p>
+      <button type="button" class="export">$${__`Export`}</button>
+      <button type="button" class="rename">$${__`Rename`}</button>
+      <button type="button" class="delete">$${__`Delete`}</button>
     </form>`, {
     'button.cancel click': e => this.render(this.views.signIn()),
     'button.export click': e => this.exportWallet(),
     'button.rename click': e => {
-      const newName = prompt('Rename wallet "' + this.walletName + '" to what?');
+      const newName = prompt(__`Rename wallet "${this.walletName}" to what?`);
       if(!newName) return;
 
       this.removeWallet(this.walletName, newName);
       this.walletName = newName;
     },
     'button.delete click': e => {
-      if(!confirm('Are you sure you wish to delete wallet "' + this.walletName + '"?\n\nYou will need to import from the seed value or export file to use these accounts again.')) return;
+      if(!confirm(__`Are you sure you wish to delete wallet "${this.walletName}"?` + '\n\n' +
+                  __`You will need to import from the seed value or export file to use these accounts again.`)) return;
 
       this.removeWallet(this.walletName);
       this.walletName = null;
@@ -99,7 +100,7 @@ window.views.passwordForm = function() {
       try {
       this.loadWallet();
       } catch(error) {
-        alert('Unable to encrypt wallet! Possibly incorrect password.');
+        alert(__`Unable to decrypt wallet! Possibly incorrect password.`);
       }
       this.render();
     }
@@ -112,24 +113,24 @@ window.views.createWallet = function() {
   const walletNames = this.listWalletNames();
   return buildTemplate(html`
     <form method="post">
-      <h1>Create Wallet</h1>
+      <h1>$${__`Create Wallet`}</h1>
       <label>
-        <span>Name</span>
+        <span>$${__`Name`}</span>
         <input name="name" autocomplete="off" />
-        <p>Give a name for the new wallet</p>
+        <p>$${__`Give a name for the new wallet`}</p>
       </label>
       <label>
-        <span>Password</span>
+        <span>$${__`Password`}</span>
         <input name="password" type="password" />
-        <p>Encrypted wallet kept in local browser storage</p>
+        <p>$${__`Encrypted wallet kept in local browser storage`}</p>
       </label>
       <label>
-        <span>Seed</span>
+        <span>$${__`Seed`}</span>
         <input name="seed" autocomplete="off" />
-        <p>Leave blank for random new wallet</p>
+        <p>$${__`Leave blank for random new wallet`}</p>
       </label>
-      <button type="submit">Create Wallet</button>
-      <button type="button" class="cancel">Cancel</button>
+      <button type="submit">$${__`Create Wallet`}</button>
+      <button type="button" class="cancel">$${__`Cancel`}</button>
     </form>`, {
     'button.cancel click': e => this.render(this.views.signIn()),
     'form submit': (e, tpl, el) => {
@@ -137,9 +138,9 @@ window.views.createWallet = function() {
       const walletParams = {};
 
       if(!values.name)
-        return alert('Name required!');
+        return alert(__`Name required!`);
       if(walletNames.indexOf(values.name) !== -1)
-        return alert('Name already in use!');
+        return alert(__`Name already in use!`);
 
       if(values.seed) walletParams.seed = values.seed;
 

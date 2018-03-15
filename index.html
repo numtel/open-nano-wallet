@@ -18,12 +18,15 @@
 <script src="controller/Account.js"></script>
 <script src="controller/Block.js"></script>
 
+<script src="lang/es.js"></script>
+
 <script src="views/signIn.js"></script>
 <script src="views/redeem.js"></script>
 <script src="views/manageAccount.js"></script>
 <script src="views/setRepresentative.js"></script>
 <script src="views/sendForm.js"></script>
 <script src="views/dashboard.js"></script>
+<script src="views/footer.js"></script>
 <script src="controller/App.js"></script>
 
 <link href="css/font-awesome.min.css" rel="stylesheet" />
@@ -31,17 +34,11 @@
 </head>
 <body>
 <div id="wallet"></div>
-<p id="footnote">Looking for help or to contribute? <a href="https://github.com/numtel/open-nano-wallet">View repository on GitHub</a></p>
 <script>
 ACCOUNT_URL = 'https://bvd9a9mbt3.execute-api.us-west-1.amazonaws.com/main/account?a=';
 BLOCK_URL = 'https://bvd9a9mbt3.execute-api.us-west-1.amazonaws.com/main/account?b=';
 PUBLISH_URL = 'https://bvd9a9mbt3.execute-api.us-west-1.amazonaws.com/main/publish?msg=';
 new App(document.querySelector('#wallet'));
-
-document.querySelector('#footnote a').addEventListener('click', e => {
-  e.preventDefault();
-  externalLink(e.target.href);
-}, false);
 </script>
 </body>
 </html>

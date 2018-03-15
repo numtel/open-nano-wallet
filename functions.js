@@ -1,9 +1,28 @@
+const LANG_LOCALSTORAGE_KEY = 'xrb_wallet_lang';
 const RAW_TO_XRB = '1000000000000000000000000000000';
 const BLOCK_TIMEOUT = 3000;
 // Time in milliseconds to wait before checking if block exists on explorer
 const BLOCK_PUBLISH_TIME = 5000;
 // Try an publish 5 times before giving up
 const PUBLISH_RETRIES = 5;
+
+function capitalize(word) {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+function __(literalSections, ...substs) {
+  const litEng = literalSections.raw.join('xxx');
+  const lang = localStorage[LANG_LOCALSTORAGE_KEY];
+  let lit;
+
+  // Use english version if not found in selected language
+  if(!(window.lang && lang in window.lang && litEng in window.lang[lang]))
+    lit = literalSections.raw;
+  else lit = window.lang[lang][litEng].split('xxx');
+
+  return lit.map((piece, i) =>
+    piece + (substs.length > i ? substs[i] : '')).join('');
+}
 
 function externalLink(href) {
   // All external links must open without allowing access back to this page
@@ -57,7 +76,7 @@ function fetchBlock(hash, maxTries) {
 }
 
 function publishBlock(rendered, maxTries) {
-  setStatus(`Publishing ${rendered.hash}...`);
+  setStatus(__`Publishing ${rendered.hash}...`);
   return fetch(PUBLISH_URL + rendered.msg)
     .then(result => {
       if(typeof maxTries === 'number')
@@ -65,10 +84,10 @@ function publishBlock(rendered, maxTries) {
           .then(() => fetchBlock(rendered.hash, 3))
           .then(result => {
             if('errorMessage' in result && maxTries > 1) {
-              setStatus('Block not published, trying again...');
+              setStatus(__`Block not published, trying again...`);
               return publishBlock(rendered, maxTries - 1);
             }
-            setStatus('Block published successfully.');
+            setStatus(__`Block published successfully.`);
             return result;
           });
       return result;
