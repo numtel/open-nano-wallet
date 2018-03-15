@@ -87,7 +87,8 @@ window.views.passwordForm = function() {
       this.walletName = newName;
     },
     'button.delete click': e => {
-      if(!confirm(__`Are you sure you wish to delete wallet "${this.walletName}"?\n\nYou will need to import from the seed value or export file to use these accounts again.`)) return;
+      if(!confirm(__`Are you sure you wish to delete wallet "${this.walletName}"?` + '\n\n' +
+                  __`You will need to import from the seed value or export file to use these accounts again.`)) return;
 
       this.removeWallet(this.walletName);
       this.walletName = null;

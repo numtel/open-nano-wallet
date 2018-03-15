@@ -87,7 +87,8 @@ window.views.sendForm = function(account) {
         return;
       }
 
-      if(!confirm(__`Send ${sendParams.amount} to ${sendParams.recipient}?\n\nNew balance will be ${rawToXrb(newBalance).toString()}`)) return;
+      if(!confirm(__`Send ${sendParams.amount} to ${sendParams.recipient}?` + '\n\n' +
+                  __`New balance will be ${rawToXrb(newBalance).toString()}`)) return;
 
       let operation;
       if(sendParams.recipient_type === 'redeem_url') {
