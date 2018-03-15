@@ -19,7 +19,7 @@ window.views.footer = function() {
     'a click': (e, tpl, el) => externalLink(el.href),
     '#lang change': e => {
       localStorage[LANG_LOCALSTORAGE_KEY] = e.target.value;
-      this.render(this.mode);
+      this.render();
     },
   });
 }

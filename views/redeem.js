@@ -6,16 +6,16 @@ window.views.redeem = function(redeemCode) {
 
   return buildTemplate(html`
     <form id="redeem" method="post" class="$${redeemCode.details instanceof Promise && redeemCode.detailsCache === null ? 'loading' : redeemCode.details instanceof Error ? 'error' : ''}">
-      <h2>Redeem Nano Currency</h2>
-      <p class="complete">Redemption complete.</p>
+      <h2>$${__`Redeem Nano Currency`}</h2>
+      <p class="complete">$${__`Redemption complete.`}</p>
       ${ redeemCode.decrypted === null ? html`
         <label>
-          <span>Password</span>
+          <span>$${__`Password`}</span>
           <input name="password" type="password" />
         </label>
-        <button type="submit">Decrypt</button>
+        <button type="submit">$${__`Decrypt`}</button>
       ` :  redeemCode.detailsCache && redeemCode.detailsCache.info.balance === '0' ? html`
-        <p>This redeem account does not have a balance.</p>
+        <p>$${__`This redeem account does not have a balance.`}</p>
       ` : redeemCode.detailsCache ? html`
         <p class="balance">
           <span class="redeemValue">
@@ -23,18 +23,18 @@ window.views.redeem = function(redeemCode) {
           </span> NANO
         </p>
         <label>
-          <span>Recipient</span>
+          <span>$${__`Recipient`}</span>
           <input name="recipient" />
           <p>
-            xrb address
+            $${__`xrb address`}
           </p>
         </label>
-        <button type="submit">Send</button>
-        <p>Need an account? <a class="external" href="$${this.baseHref}">Create a new wallet</a></p>
+        <button type="submit">$${__`Send`}</button>
+        <p>$${__`Need an account?`} <a class="external" href="$${this.baseHref}">$${__`Create a new wallet`}</a></p>
       ` : redeemCode.details instanceof Error ? html`
-        <p>Invalid Redeem Code</p>
+        <p>$${__`Invalid Redeem Code`}</p>
       ` : html`
-        <p>Loading...</p>
+        <p>$${__`Loading...`}</p>
       `}
     </form>`, {
     'a.external click': (e, tpl, el) => externalLink(el.href),
@@ -45,7 +45,7 @@ window.views.redeem = function(redeemCode) {
         const redeemParts = redeemCode.raw.split(':');
         const decrypted = decrypt(redeemParts[0], redeemParts[1], sendParams.password);
         if(decrypted === null) {
-          alert('Invalid password.');
+          alert(__`Invalid password.`);
           el.elements[0].value = '';
           el.elements[0].focus();
         } else {
@@ -57,7 +57,7 @@ window.views.redeem = function(redeemCode) {
         try {
           keyFromAccount(sendParams.recipient);
         } catch(error) {
-          alert('Please specify a valid recipient address.');
+          alert(__`Please specify a valid recipient address.`);
           return;
         }
 

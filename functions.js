@@ -6,6 +6,10 @@ const BLOCK_PUBLISH_TIME = 5000;
 // Try an publish 5 times before giving up
 const PUBLISH_RETRIES = 5;
 
+function capitalize(word) {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
 function __(literalSections, ...substs) {
   const litEng = literalSections.raw.join('xxx');
   const lang = localStorage[LANG_LOCALSTORAGE_KEY];
