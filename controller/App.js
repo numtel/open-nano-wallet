@@ -43,6 +43,7 @@ class App {
     } else {
       this.element.appendChild(this.defaultView());
     }
+    this.element.appendChild(this.views.footer());
   }
   queueWork(hash) {
     this.pendingWorkHashes.push(hash);
@@ -62,9 +63,9 @@ class App {
 
     const nextWorkHash = this.pendingWorkHashes.shift();
     return this.workQueuePromise = new Promise((resolve, reject) => {
-      setStatus(`Beginning work generation for ${nextWorkHash}`);
+      setStatus(__`Beginning work generation for ${nextWorkHash}`);
       let finished = data => {
-        setStatus(`Found ${data} for ${nextWorkHash}`);
+        setStatus(__`Found ${data} for ${nextWorkHash}`);
         // Do not execute this callback again if WebGL returned before
         // it was able to be stopped
         if(finished === null) return;

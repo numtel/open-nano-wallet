@@ -28,7 +28,7 @@ window.views.sendForm = function(account) {
         <input name="amount" autocomplete="off" />
         <p class="newBalance"></p>
       </label>
-      <button type="submit">Send</button>
+      <button type="submit">$${__`Send`}</button>
       <button type="button" class="cancel">Cancel</button>
     </form>`, {
     'button.cancel click': e => this.render(),
