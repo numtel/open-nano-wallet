@@ -26,7 +26,7 @@ window.views.redeem = function(redeemCode) {
           <span>$${__`Recipient`}</span>
           <input name="recipient" />
           <p>
-            $${__`XRB address`}
+            $${__`XRB Address`}
           </p>
         </label>
         <button type="submit">$${__`Send`}</button>
