@@ -80,7 +80,7 @@ window.views.dashboard = function() {
           </dd>
           ${ block.hash in account.data.redeemSends ? html`
             <dt>Redeem:</dt>
-            <dd class="ellipsis">
+            <dd class="dont-break-out">
               <a class="external" href="$${account.wallet.app.baseHref}?redeem=$${account.data.redeemSends[block.hash]}">
                 $${account.wallet.app.baseHref}?redeem=$${account.data.redeemSends[block.hash]}
               </a>

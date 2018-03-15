@@ -1,5 +1,5 @@
 .hidden { display:none; }
-.dont-break-out {
+.dont-break-out:active {
   overflow-wrap: break-word;
   word-wrap: break-word;
   -ms-word-break: break-all;
@@ -9,8 +9,11 @@
   -moz-hyphens: auto;
   -webkit-hyphens: auto;
   hyphens: auto;
+  text-overflow: none;
+  white-space: normal;
 }
-.ellipsis {
+.ellipsis,
+.dont-break-out {
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
