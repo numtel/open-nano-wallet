@@ -62,9 +62,9 @@ class App {
 
     const nextWorkHash = this.pendingWorkHashes.shift();
     return this.workQueuePromise = new Promise((resolve, reject) => {
-      console.log('beginning', nextWorkHash);
+      setStatus(`Beginning work generation for ${nextWorkHash}`);
       let finished = data => {
-        console.log('finished', nextWorkHash);
+        setStatus(`Found ${data} for ${nextWorkHash}`);
         // Do not execute this callback again if WebGL returned before
         // it was able to be stopped
         if(finished === null) return;
@@ -74,7 +74,7 @@ class App {
 
         this.workQueuePromise = null;
         resolve({ hash: nextWorkHash, work: data });
-      }
+      };
 
       const workers = pow_initiate(undefined, 'dist/RaiBlocksWebAssemblyPoW/');
       pow_callback(workers, nextWorkHash, () => {}, finished);

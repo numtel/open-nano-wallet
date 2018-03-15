@@ -80,6 +80,8 @@ ul.wallets a:hover { box-shadow: 0 0 5px #555; }
 #actions a i { padding-right: 5px; }
 #actions a:hover { background: #ddd; color:#000; }
 
+#txStatus { max-width:600px; margin:30px auto; padding:10px; overflow:auto;}
+
 #history { list-style: none; padding: 0 10px; max-width: 960px; margin: 15px auto; }
 #history li { box-shadow: 1px 1px 4px #ccc; padding: 10px 10px 10px 75px; min-height: 72px; position: relative; }
 #history li.no-blocks { box-shadow: none; text-align: center; color: #999; font-size: 140%; padding: 20px; }

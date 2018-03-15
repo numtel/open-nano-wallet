@@ -38,6 +38,9 @@ window.views.dashboard = function() {
       <li><a href="#" class="displaySeed"><i class="fa fa-floppy-o fa-fw"></i>Display Wallet Seed</a></li>
       <li><a href="#" class="logout"><i class="fa fa-sign-out fa-fw"></i>Log Out</a></li>
     </ul>
+    ${!details ? html`
+      <pre id="txStatus"></pre>
+    ` : ''}
     <ol id="history">
       ${details && details.pending.length ? details.pending.map((block, index) => html`<li class="pending">
         <i class="fa fa-arrow-left fa-3x fa-fw"></i>
@@ -81,8 +84,8 @@ window.views.dashboard = function() {
           ${ block.hash in account.data.redeemSends ? html`
             <dt>Redeem:</dt>
             <dd class="dont-break-out">
-              <a class="external" href="$${account.wallet.app.baseHref}?redeem=$${account.data.redeemSends[block.hash]}">
-                $${account.wallet.app.baseHref}?redeem=$${account.data.redeemSends[block.hash]}
+              <a class="external" href="$${this.baseHref}?redeem=$${account.data.redeemSends[block.hash]}">
+                $${this.baseHref}?redeem=$${account.data.redeemSends[block.hash]}
               </a>
             </dd>
           ` : ''}

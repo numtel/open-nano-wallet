@@ -30,12 +30,14 @@ window.views.redeem = function(redeemCode) {
           </p>
         </label>
         <button type="submit">Send</button>
+        <p>Need an account? <a class="external" href="$${this.baseHref}">Create a new wallet</a></p>
       ` : redeemCode.details instanceof Error ? html`
         <p>Invalid Redeem Code</p>
       ` : html`
         <p>Loading...</p>
       `}
     </form>`, {
+    'a.external click': (e, tpl, el) => externalLink(el.href),
     'form submit': (e, tpl, el) => {
       const sendParams = formValues(el);
 

@@ -41,6 +41,11 @@ function decrypt(saltB64, boxB64, password) {
   return nacl.secretbox.open(box, nonce, key);
 }
 
+function setStatus(msg) {
+  const el = document.getElementById('txStatus');
+  if(el) el.innerHTML += msg + '\n';
+}
+
 function fetchBlock(hash, maxTries) {
   return fetch(BLOCK_URL + hash)
     .then(response => response.json())
@@ -52,14 +57,18 @@ function fetchBlock(hash, maxTries) {
 }
 
 function publishBlock(rendered, maxTries) {
+  setStatus(`Publishing ${rendered.hash}...`);
   return fetch(PUBLISH_URL + rendered.msg)
     .then(result => {
       if(typeof maxTries === 'number')
         return delay(BLOCK_PUBLISH_TIME)
           .then(() => fetchBlock(rendered.hash, 3))
           .then(result => {
-            if('errorMessage' in result && maxTries > 1)
+            if('errorMessage' in result && maxTries > 1) {
+              setStatus('Block not published, trying again...');
               return publishBlock(rendered, maxTries - 1);
+            }
+            setStatus('Block published successfully.');
             return result;
           });
       return result;
