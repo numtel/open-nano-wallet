@@ -22,11 +22,11 @@ class App {
       return out;
     }, {});
 
-    this.render(
-      this.redeemCode.raw ? this.views.redeem(this.redeemCode) :
-      this.wallet ? null : // default to dashboard
-      this.views.signIn()
-    );
+    this.defaultView = this.redeemCode.raw ?
+      () => this.views.redeem(this.redeemCode) :
+      () => this.views.dashboard();
+
+    this.render();
 
     document.addEventListener('keyup', e => {
       if(e.code === 'Escape') this.render();
@@ -41,7 +41,7 @@ class App {
     if(this.mode !== null) {
       this.element.appendChild(this.mode);
     } else {
-      this.element.appendChild(this.views.dashboard());
+      this.element.appendChild(this.defaultView());
     }
   }
   queueWork(hash) {
