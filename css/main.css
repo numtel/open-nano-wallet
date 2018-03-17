@@ -32,6 +32,8 @@ form label.check span:after { content: none; }
 form label.check input { width: auto; }
 form label p { margin: 4px 0; font-size: 85%; color: #666; }
 
+.buttons button { margin-bottom:10px; }
+
 #redeem .balance { font-size: 120%; }
 #redeem .account a { color: #666; font-size: 85%; }
 #redeem.sending { background: #ffc url(../img/ajax-loader.gif) no-repeat center center; }

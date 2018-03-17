@@ -55,7 +55,7 @@ window.lang.es = {
   'New Balance': 'Saldo Nuevo',
   'redeemable link': 'una enlace rescatable',
   'Encryption passwords do not match.': 'Las contrase\u00F1as no son iguales.',
-  'Send xxx to xxx?': '\u00BFSend xxx a xxx?',
+  'Send xxx to xxx?': '\u00BFEnviar xxx a xxx?',
   'New balance will be xxx': 'El saldo nuevo ser\u00EDa xxx',
   'Loading work...': 'Cargando la obra...',
   'Show Menu': 'Mostrar la carta',

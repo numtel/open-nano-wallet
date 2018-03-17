@@ -8,9 +8,15 @@ window.views.dashboard = function() {
   const account = this.wallet.params.accounts[this.selectedAccount];
   const details = !account.loading ? account.detailsCache : null;
   if(!account.loading && !account.detailsCache)
-    account.details.then(() => this.render()); // Reload when details are ready
+    account.details
+      // Reload when details are ready
+      .then(() => this.render())
+      .catch(reason => {
+        out.querySelector('#history li.error').classList.remove('hidden');
+        console.error(reason);
+      });
 
-  return buildTemplate(html`
+  const out = buildTemplate(html`
     <div id="currentAccount">
       <div class="balance $${details ? '' : 'loading'}">
           <span class="xrb">${details ? rawToXrb(details.info.balance).toString() : ''}</span>
@@ -63,6 +69,10 @@ window.views.dashboard = function() {
           <dd><a href="#" class="acceptPending" data-hash="$${block.hash}">$${__`Accept Pending Block`}</a></dd>
         </dl>
       </li>`) : ''}
+      <li class="no-blocks error hidden">
+        $${__`Error fetching account.`}
+        <a href="#" class="refresh">$${__`Refresh`}</a>
+      </li>
       ${details && details.history.length === 0 ? html`
         <li class="no-blocks">$${__`No transactions in this account`}</li>` : ''}
       ${details && details.history.length !== 0 ? details.history.map((block, index) => html`<li>
@@ -102,14 +112,18 @@ window.views.dashboard = function() {
     '.refresh click': e => {
       account.refresh()
         .then(() => this.render())
-        .catch(reason => alert(reason));
+        .catch(reason => { account.loading = false; alert(reason); this.render(); });
       this.render();
     },
     '.sendForm click': e => this.render(this.views.sendForm(account)),
     '.changeRep click': e => this.render(this.views.setRepresentative(account)),
     '.editAccount click': e => this.render(this.views.manageAccount(account, true)),
     '.addAccount click': e => this.render(this.views.manageAccount(undefined, true)),
-    '.logout click': e => { this.wallet = null; this.render(this.views.signIn()); },
+    '.logout click': e => {
+      this.wallet = null;
+      this.selectedAccount = 0;
+      this.render(this.views.signIn());
+    },
     '.displaySeed click': e => this.render(this.views.showSeed()),
     '#history a.acceptPending click': (e, tpl, el) => {
       const block = details.pending
@@ -126,6 +140,7 @@ window.views.dashboard = function() {
     '.showMenu, #mainMenu click': (e, tpl) =>
       tpl.querySelector('#mainMenu').classList.toggle('open'),
   });
+  return out;
 }
 
 window.views.showSeed = function() {
@@ -135,8 +150,10 @@ window.views.showSeed = function() {
       <p class="dont-break-out">$${this.wallet.params.seed}</p>
       <p>$${__`Always keep a backup of your seed value.`}</p>
       <p>$${__`All accounts can be recovered from this seed value. Protect it!`}</p>
+      <button type="button" class="export">$${__`Export Wallet`}</button>
       <button type="button" class="cancel">$${__`Close`}</button>
     </form>`, {
+    'button.export click': e => this.exportWallet(),
     'button.cancel click': e => this.render()
   });
 }

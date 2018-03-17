@@ -108,10 +108,15 @@ class App {
     const wallets = LOCALSTORAGE_KEY in localStorage ? JSON.parse(localStorage[LOCALSTORAGE_KEY]) : {};
     if(!(typeof data === 'object' && 'box' in data && 'salt' in data))
       throw new Error('INVALID_WALLET');
+    if(name in wallets)
+      throw new Error('WALLET_EXISTS');
     wallets[name] = data;
     localStorage[LOCALSTORAGE_KEY] = JSON.stringify(wallets);
   }
   saveWallet() {
+    // If work completes after logging out, do not clear the stored box
+    if(this.wallet === null) return;
+
     const json = new TextEncoder().encode(JSON.stringify(this.wallet));
     const wallets = LOCALSTORAGE_KEY in localStorage ? JSON.parse(localStorage[LOCALSTORAGE_KEY]) : {};
     wallets[this.walletName] = encrypt(json, this.walletPassword);
@@ -121,6 +126,8 @@ class App {
     const wallets = LOCALSTORAGE_KEY in localStorage ? JSON.parse(localStorage[LOCALSTORAGE_KEY]) : {};
     if(!(this.walletName in wallets))
       throw new Error('INVALID_WALLET');
+    if(newName && newName in wallets)
+      throw new Error('WALLET_EXISTS');
 
     if(newName)
       wallets[newName] = wallets[original];
@@ -137,5 +144,18 @@ class App {
     const open = decrypt(data.salt, data.box, this.walletPassword);
 
     this.wallet = new Wallet(this, JSON.parse(new TextDecoder().decode(open)));
+  }
+  changeWalletPassword(oldPw, newPw) {
+    const wallets = LOCALSTORAGE_KEY in localStorage ? JSON.parse(localStorage[LOCALSTORAGE_KEY]) : {};
+    if(!(this.walletName in wallets))
+      throw new Error('INVALID_WALLET');
+
+    const data = wallets[this.walletName];
+    const open = decrypt(data.salt, data.box, oldPw);
+    if(open === null)
+      throw new Error('INVALID_PASSWORD');
+
+    wallets[this.walletName] = encrypt(open, newPw);
+    localStorage[LOCALSTORAGE_KEY] = JSON.stringify(wallets);
   }
 }

@@ -38,9 +38,14 @@ window.views.signIn = function() {
       if(el.files.length === 0) return;
 
       const reader = new FileReader();
+      let name = el.files[0].name;
+      while(this.listWalletNames().indexOf(name) !== -1) {
+        name = prompt(__`Name in use. What to name wallet?`, name);
+      }
+
       reader.onload = e => {
         try {
-          this.importWallet(el.files[0].name, JSON.parse(e.target.result));
+          this.importWallet(name, JSON.parse(e.target.result));
         } catch(error) {
           console.error(error);
           alert(__`This file does not contain a valid exported wallet.`);
@@ -63,7 +68,7 @@ window.views.signIn = function() {
 
 window.views.passwordForm = function() {
   return buildTemplate(html`
-    <form id="send" method="post">
+    <form method="post">
       <h2>$${__`Log In`}: $${this.walletName}</h2>
       <label>
         <span>$${__`Password`}</span>
@@ -73,17 +78,28 @@ window.views.passwordForm = function() {
       <button type="submit">$${__`Log In`}</button>
       <button type="button" class="cancel">$${__`Cancel`}</button>
       <p>$${__`Always keep a backup of your seed value.`}</p>
-      <button type="button" class="export">$${__`Export`}</button>
-      <button type="button" class="rename">$${__`Rename`}</button>
-      <button type="button" class="delete">$${__`Delete`}</button>
+      <div class="buttons">
+        <button type="button" class="export">$${__`Export`}</button>
+        <button type="button" class="changePw">$${__`Change Password`}</button>
+        <button type="button" class="rename">$${__`Rename`}</button>
+        <button type="button" class="delete">$${__`Delete`}</button>
+      </div>
     </form>`, {
     'button.cancel click': e => this.render(this.views.signIn()),
     'button.export click': e => this.exportWallet(),
+    'button.changePw click': e => this.render(this.views.changePw()),
     'button.rename click': e => {
       const newName = prompt(__`Rename wallet "${this.walletName}" to what?`);
       if(!newName) return;
 
-      this.removeWallet(this.walletName, newName);
+      try {
+        this.removeWallet(this.walletName, newName);
+      } catch(error) {
+        if(error.message === 'WALLET_EXISTS')
+          alert(__`Wallet already exists with this name.`);
+        else alert(__`An error has occurred.`);
+        return;
+      }
       this.walletName = newName;
     },
     'button.delete click': e => {
@@ -98,10 +114,52 @@ window.views.passwordForm = function() {
       const values = formValues(el);
       this.walletPassword = values.password;
       try {
-      this.loadWallet();
+        this.loadWallet();
       } catch(error) {
         alert(__`Unable to decrypt wallet! Possibly incorrect password.`);
+        el.elements[0].value = '';
+        el.elements[0].focus();
+        return;
       }
+      this.render();
+    }
+  }, {
+    focusForm: true
+  });
+}
+
+window.views.changePw = function() {
+  return buildTemplate(html`
+    <form method="post">
+      <h2>$${__`Change Password`}: $${this.walletName}</h2>
+      <label>
+        <span>$${__`Old Password`}</span>
+        <input name="old_password" type="password" />
+      </label>
+      <label>
+        <span>$${__`New Password`}</span>
+        <input name="new_password" type="password" />
+      </label>
+      <label>
+        <span>$${__`Repeat New Password`}</span>
+        <input name="new_password_2" type="password" />
+      </label>
+      <button type="submit">$${__`Change Password`}</button>
+      <button type="button" class="cancel">$${__`Cancel`}</button>
+    </form>`, {
+    'button.cancel click': e => this.render(),
+    'form submit': (e, tpl, el) => {
+      const values = formValues(el);
+      if(values.new_password !== values.new_password_2)
+        return alert(__`Passwords do not match.`);
+
+      try {
+        this.changeWalletPassword(values.old_password, values.new_password);
+      } catch(error) {
+        alert(__`Unable to decrypt wallet! Possibly incorrect password.`);
+        return;
+      }
+      this.walletName = null;
       this.render();
     }
   }, {
@@ -125,6 +183,10 @@ window.views.createWallet = function() {
         <p>$${__`Encrypted wallet kept in local browser storage`}</p>
       </label>
       <label>
+        <span>$${__`Repeat Password`}</span>
+        <input name="password_2" type="password" />
+      </label>
+      <label>
         <span>$${__`Seed`}</span>
         <input name="seed" autocomplete="off" />
         <p>$${__`Leave blank for random new wallet`}</p>
@@ -137,6 +199,8 @@ window.views.createWallet = function() {
       const values = formValues(el);
       const walletParams = {};
 
+      if(values.password !== values.password_2)
+        return alert(__`Passwords do not match.`);
       if(!values.name)
         return alert(__`Name required!`);
       if(walletNames.indexOf(values.name) !== -1)

@@ -79,7 +79,11 @@ Resources:
           const dgram = require('dgram');
 
           exports.handler = function(event, context, callback) {
-            dgram.createSocket('udp4').send(Buffer.from(event.msg, 'hex'), 7075, 'rai.raiblocks.net', callback);
+            const socket = dgram.createSocket('udp4');
+            socket.send(Buffer.from(event.msg, 'hex'), 7075, 'rai.raiblocks.net', function() {
+              socket.close();
+              callback.apply(this, arguments);
+            });
           }
   ApiRole:
     Type: AWS::IAM::Role
