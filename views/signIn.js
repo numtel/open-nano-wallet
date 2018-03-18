@@ -66,7 +66,7 @@ window.views.signIn = function() {
   });
 }
 
-window.views.passwordForm = function() {
+window.views.passwordForm = function(hideManageButtons) {
   return buildTemplate(html`
     <form method="post">
       <h2>$${__`Log In`}: $${this.walletName}</h2>
@@ -77,15 +77,17 @@ window.views.passwordForm = function() {
       </label>
       <button type="submit">$${__`Log In`}</button>
       <button type="button" class="cancel">$${__`Cancel`}</button>
-      <p>$${__`Always keep a backup of your seed value.`}</p>
-      <div class="buttons">
-        <button type="button" class="export">$${__`Export`}</button>
-        <button type="button" class="changePw">$${__`Change Password`}</button>
-        <button type="button" class="rename">$${__`Rename`}</button>
-        <button type="button" class="delete">$${__`Delete`}</button>
-      </div>
+      ${!hideManageButtons ? html`
+        <p>$${__`Always keep a backup of your seed value.`}</p>
+        <div class="buttons">
+          <button type="button" class="export">$${__`Export`}</button>
+          <button type="button" class="changePw">$${__`Change Password`}</button>
+          <button type="button" class="rename">$${__`Rename`}</button>
+          <button type="button" class="delete">$${__`Delete`}</button>
+        </div>
+      `: ''}
     </form>`, {
-    'button.cancel click': e => this.render(this.views.signIn()),
+    'button.cancel click': e => this.render(),
     'button.export click': e => this.exportWallet(),
     'button.changePw click': e => this.render(this.views.changePw()),
     'button.rename click': e => {
@@ -194,7 +196,7 @@ window.views.createWallet = function() {
       <button type="submit">$${__`Create Wallet`}</button>
       <button type="button" class="cancel">$${__`Cancel`}</button>
     </form>`, {
-    'button.cancel click': e => this.render(this.views.signIn()),
+    'button.cancel click': e => this.render(),
     'form submit': (e, tpl, el) => {
       const values = formValues(el);
       const walletParams = {};

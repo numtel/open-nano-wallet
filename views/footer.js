@@ -3,7 +3,7 @@ window.views.footer = function() {
   return buildTemplate(html`
     <p id="footnote">
       $${__`Looking for help or to contribute?`}
-      <a href="https://github.com/numtel/open-nano-wallet">$${__`View repository on GitHub`}</a>
+      <a href="https://github.com/numtel/open-nano-wallet" rel="noreferrer">$${__`View repository on GitHub`}</a>
       <br />
       <br />
       <select id="lang">

@@ -36,8 +36,6 @@ window.lang.es = {
   Recipient: 'Receptor',
   'XRB Address': 'Direcci\u00F3n XRB',
   Send: 'Enviar',
-  'Need an account?': '\u00BFNecesita una cuenta?',
-  'Create a new wallet': 'Crear una cartera nueva',
   'Invalid Redeem Code': 'Codigo rescatable inv\u00E1lido',
   'Loading...': 'Cargando...',
   'Invalid password.': 'Contrase\u00F1a inv\u00E1lida.',
@@ -119,4 +117,9 @@ window.lang.es = {
   'Repeat New Password': 'Contrase\u00F1a nueva otra vez',
   'Passwords do not match.': 'Las contrase\u00F1as no son iguales.',
   'Repeat Password': 'Contrase\u00F1a otra vez',
+  'Return to Sign In': 'Regresar a iniciar sesi\u00F3n',
+  'Create a wallet to accept the funds:': 'Crea una cartera para recibir los fondos:',
+  'Choose a wallet to receive the funds:': 'Elige una cartera para recibir los fondos:',
+  'Or, send to any address:': 'O, enviar a alguna direcci\u00F3n:',
+  'Choose an account to receive the funds:': 'Elige una cuenta para recibir los fondos:',
 }

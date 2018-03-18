@@ -43,7 +43,10 @@ class Account {
 
     this.details = null; // Replaced with promise immediately
     this.detailsCache = null; // Replaced when loaded
-    this.refresh();
+
+    // Account details, work values are not used in redeem mode
+    if(this.wallet.app.redeemCode.raw === null)
+      this.refresh();
 
     this.loading = false;
   }
