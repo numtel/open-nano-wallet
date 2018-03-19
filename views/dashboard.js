@@ -132,6 +132,7 @@ window.views.dashboard = function() {
     '.logout click': e => {
       this.wallet = null;
       this.selectedAccount = 0;
+      this.workQueueStop && this.workQueueStop();
       this.render();
     },
     '.displaySeed click': e => this.render(this.views.showSeed()),

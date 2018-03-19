@@ -73,9 +73,9 @@ class App {
         if(finished === null) return;
 
         // Prevent continuation of any of the work methods
-        finished = null;           // WebGL
-        pow_terminate(workers);    // WebAssembly
-        remoteTries.remaining = 0; // Remote
+        finished = null;                           // WebGL
+        if(workers) pow_terminate(workers);        // WebAssembly
+        if(remoteTries) remoteTries.remaining = 0; // Remote
 
         this.workQueuePromise = null;
         this.workQueueStop = null;
@@ -88,21 +88,25 @@ class App {
         }
       };
 
-      const workers = pow_initiate(undefined, 'dist/RaiBlocksWebAssemblyPoW/');
-      pow_callback(workers, nextWorkHash, () => {}, finished);
+      let workers, remoteTries;
+      if(this.workFromRemote) {
+        remoteTries = { remaining: REMOTE_WORK_RETRIES };
+        fetchRemoteWork(nextWorkHash, remoteTries).then(finished);
+      } else {
+        workers = pow_initiate(undefined, 'dist/RaiBlocksWebAssemblyPoW/');
+        pow_callback(workers, nextWorkHash, () => {}, finished);
 
-      const remoteTries = { remaining: REMOTE_WORK_RETRIES };
-      this.workFromRemote && fetchRemoteWork(nextWorkHash, remoteTries).then(finished);
 
-      try {
-        NanoWebglPow(nextWorkHash, finished, function(n) {
-          // If WebAssembly finished first, do not continue with WebGL
-          if(finished === null) return true;
-        });
-      } catch(error) {
-        if(error.message === 'webgl2_required') {
-          // Do nothing, WebAssembly is calculating as well
-        } else throw error;
+        try {
+          NanoWebglPow(nextWorkHash, finished, function(n) {
+            // If WebAssembly finished first, do not continue with WebGL
+            if(finished === null) return true;
+          });
+        } catch(error) {
+          if(error.message === 'webgl2_required') {
+            // Do nothing, WebAssembly is calculating as well
+          } else throw error;
+        }
       }
     });
   }
