@@ -26,12 +26,16 @@ window.views.dashboard = function() {
       <a href="#" class="showMenu" title="$${__`Show Menu`}"><i class="fa fa-bars"></i></a>
       <h1><a href="#" class="showActions" title="$${__`Account Actions`}">$${account.data.name}<i class="fa fa-sort-desc"></i></a></h1>
       <ul id="actions" class="hidden">
-        <li><a href="#" class="sendForm">
-          <i class="fa fa-arrow-right fa-fw"></i>$${__`Send...`}</a></li>
+				${details && details.history.length !== 0 ? html`
+					<li><a href="#" class="sendForm">
+						<i class="fa fa-arrow-right fa-fw"></i>$${__`Send...`}</a></li>
+				` : ''}
         <li><a href="#" class="editAccount">
           <i class="fa fa-pencil fa-fw"></i>$${__`Edit Account...`}</a></li>
-        <li><a href="#" class="changeRep">
-          <i class="fa fa-flag fa-fw"></i>$${__`Change Representative...`}</a></li>
+				${details && details.history.length !== 0 ? html`
+					<li><a href="#" class="changeRep">
+						<i class="fa fa-flag fa-fw"></i>$${__`Change Representative...`}</a></li>
+				` : ''}
         <li><a href="#" class="refresh">
           <i class="fa fa-refresh fa-fw"></i>$${__`Refresh`}</a></li>
       </ul>
