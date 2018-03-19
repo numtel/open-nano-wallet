@@ -128,6 +128,10 @@ class Account {
             details: this.detailsCache,
             work: data
           };
+        })
+        .catch(reason => {
+          if(reason === 'GENERATION_STOPPED') this.data.workValue = null;
+          else throw reason;
         });
     }
   }

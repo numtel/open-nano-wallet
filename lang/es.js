@@ -122,4 +122,7 @@ window.lang.es = {
   'Choose a wallet to receive the funds:': 'Elige una cartera para recibir los fondos:',
   'Or, send to any address:': 'O, enviar a alguna direcci\u00F3n:',
   'Choose an account to receive the funds:': 'Elige una cuenta para recibir los fondos:',
+	'Fetch work from remote server': 'Busca la obra del servidor remoto',
+	'For low-power devices like phones, it may be faster to load the transaction work values from the remote server.': 'Para los dispositivos bajos en poder como los tel\u00E9fonos, puede ser m\u00E1s rapido cargar la obra de las transacciones del servidor remoto.',
+	'Fetch Remote Work': 'Busca la obra remota',
 }

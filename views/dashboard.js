@@ -42,6 +42,7 @@ window.views.dashboard = function() {
         html`<li><a href="#" class="account" data-index="$${index}"><i class="fa fa-money fa-fw"></i> $${acct.data.name}</a></li>`).join('')}
       <li><a href="#" class="addAccount"><i class="fa fa-plus fa-fw"></i> $${__`Add Account`}</a></li>
       <li><a href="#" class="displaySeed"><i class="fa fa-floppy-o fa-fw"></i> $${__`Display Wallet Seed`}</a></li>
+      <li><a href="#" class="remoteWork"><i class="fa fa-$${this.workFromRemote ? 'check-square' : 'square-o'} fa-fw"></i> $${__`Fetch Remote Work`}</a></li>
       <li><a href="#" class="logout"><i class="fa fa-sign-out fa-fw"></i> $${__`Log Out`}</a></li>
     </ul>
     ${!details ? html`
@@ -119,10 +120,15 @@ window.views.dashboard = function() {
     '.changeRep click': e => this.render(this.views.setRepresentative(account)),
     '.editAccount click': e => this.render(this.views.manageAccount(account, true)),
     '.addAccount click': e => this.render(this.views.manageAccount(undefined, true)),
+    '.remoteWork click': e => {
+      this.workFromRemote = localStorage[REMOTE_WORK_LOCALSTORAGE_KEY] = !this.workFromRemote;
+      this.workQueueStop && this.workQueueStop();
+      this.render();
+    },
     '.logout click': e => {
       this.wallet = null;
       this.selectedAccount = 0;
-      this.render(this.views.signIn());
+      this.render();
     },
     '.displaySeed click': e => this.render(this.views.showSeed()),
     '#history a.acceptPending click': (e, tpl, el) => {

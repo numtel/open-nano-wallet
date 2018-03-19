@@ -5,6 +5,7 @@ const BLOCK_TIMEOUT = 3000;
 const BLOCK_PUBLISH_TIME = 5000;
 // Try an publish 5 times before giving up
 const PUBLISH_RETRIES = 5;
+const REMOTE_WORK_RETRIES = 15;
 
 function capitalize(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
@@ -63,6 +64,17 @@ function decrypt(saltB64, boxB64, password) {
 function setStatus(msg) {
   const el = document.getElementById('txStatus');
   if(el) el.innerHTML += msg + '\n';
+}
+
+function fetchRemoteWork(hash, maxTries) {
+  return fetch(WORK_URL + hash)
+    .then(response => response.json(), reason => console.error(reason))
+    .then(result => {
+      if(maxTries && maxTries.remaining && typeof result !== 'string') {
+        maxTries.remaining--;
+        return fetchRemoteWork(hash, maxTries)
+      } else return result;
+    });
 }
 
 function fetchBlock(hash, maxTries) {

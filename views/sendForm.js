@@ -28,10 +28,21 @@ window.views.sendForm = function(account) {
         <input name="amount" autocomplete="off" />
         <p class="newBalance"></p>
       </label>
-      <button type="submit">$${__`Send`}</button>
-      <button type="button" class="cancel">$${__`Cancel`}</button>
+      <div class="buttons">
+        <button type="submit">$${__`Send`}</button>
+        <button type="button" class="cancel">$${__`Cancel`}</button>
+      </div>
+      <label class="check">
+        <input name="remote_work" $${this.workFromRemote ? 'checked' : ''} type="checkbox">
+        <span>$${__`Fetch work from remote server`}</span>
+        <p>$${__`For low-power devices like phones, it may be faster to load the transaction work values from the remote server.`}</p>
+      </label>
     </form>`, {
     'button.cancel click': e => this.render(),
+    'input[name=remote_work] inputChange': (e, tpl, el) => {
+      this.workFromRemote = localStorage[REMOTE_WORK_LOCALSTORAGE_KEY] = el.checked;
+      this.workQueueStop && this.workQueueStop();
+    },
     'input[name=recipient_type] inputChange': (e, tpl, el) => {
       const form = tpl.children[0];
       const sendParams = formValues(form);

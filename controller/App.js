@@ -1,4 +1,5 @@
 const LOCALSTORAGE_KEY = 'xrb_wallets';
+const REMOTE_WORK_LOCALSTORAGE_KEY = 'xrb_work_from_remote';
 
 class RedeemCodeError extends Error {}
 
@@ -12,6 +13,8 @@ class App {
     this.walletPassword = null;
     this.pendingWorkHashes = [];
     this.workQueuePromise = null;
+    this.workQueueStop = null;
+    this.workFromRemote = localStorage[REMOTE_WORK_LOCALSTORAGE_KEY] === 'true';
     this.baseHref = `${location.protocol}//${location.host}${location.pathname}`;
 
     this.redeemCode = new Redeem;
@@ -64,21 +67,32 @@ class App {
     const nextWorkHash = this.pendingWorkHashes.shift();
     return this.workQueuePromise = new Promise((resolve, reject) => {
       setStatus(__`Beginning work generation for ${nextWorkHash}`);
-      let finished = data => {
-        setStatus(__`Found ${data} for ${nextWorkHash}`);
+      let finished = this.workQueueStop = data => {
         // Do not execute this callback again if WebGL returned before
         // it was able to be stopped
         if(finished === null) return;
 
-        finished = null;        // In case of WebAssembly finishing first
-        pow_terminate(workers); // In case of WebGL finishing first
+        // Prevent continuation of any of the work methods
+        finished = null;           // WebGL
+        pow_terminate(workers);    // WebAssembly
+        remoteTries.remaining = 0; // Remote
 
         this.workQueuePromise = null;
-        resolve({ hash: nextWorkHash, work: data });
+        this.workQueueStop = null;
+
+        if(data) {
+          setStatus(__`Found ${data} for ${nextWorkHash}`);
+          resolve({ hash: nextWorkHash, work: data });
+        } else {
+          reject('GENERATION_STOPPED');
+        }
       };
 
       const workers = pow_initiate(undefined, 'dist/RaiBlocksWebAssemblyPoW/');
       pow_callback(workers, nextWorkHash, () => {}, finished);
+
+      const remoteTries = { remaining: REMOTE_WORK_RETRIES };
+      this.workFromRemote && fetchRemoteWork(nextWorkHash, remoteTries).then(finished);
 
       try {
         NanoWebglPow(nextWorkHash, finished, function(n) {
