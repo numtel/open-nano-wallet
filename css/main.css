@@ -33,6 +33,7 @@ form label.check input { width: auto; }
 form label p { margin: 4px 0; font-size: 85%; color: #666; }
 
 .buttons button { margin-bottom:10px; }
+button { padding: 5px 10px; cursor:pointer; }
 
 #redeem .balance { font-size: 120%; }
 #redeem .account a { color: #666; font-size: 85%; }
@@ -47,14 +48,14 @@ form label p { margin: 4px 0; font-size: 85%; color: #666; }
 #send.xrb_address>.xrb_address,
 #send.redeem_url>.redeem_url { display: inherit; }
 
-#currentAccount { background: #ffc; border-bottom: 1px solid #ddd; padding: 10px; box-shadow: 0 2px 4px #ccc; font-size:110%; }
+#currentAccount { background: #ffc; border-bottom: 1px solid #ddd; padding: 10px; font-size:110%; }
 #currentAccount .showMenu { color: #333; float: left; padding: 4px; }
 #currentAccount .showMenu:hover { color:#009; }
 #currentAccount .balance { float:right; display:block; }
 #currentAccount .balance.loading { width: 56px; height: 21px; background:url(../img/ajax-loader.gif) no-repeat 0 0; }
 #currentAccount .balance .xrb { font-size: 120%; }
 #currentAccount .balance .fiat { color: #999; }
-#currentAccount h1 { font-size: 120%; margin: 0 0 10px; }
+#currentAccount h1 { font-size: 120%; margin: 0 20px 10px; float:left; }
 #currentAccount h1 a { text-decoration: none; color:#000; }
 #currentAccount h1 a:hover { color:#009; }
 #currentAccount h1 a i { padding-left: 7px; position:relative; top:-0.2em; }
@@ -74,7 +75,7 @@ ul.wallets a:hover { box-shadow: 0 0 5px #555; }
 #footnote { text-align:center; color:#999; font-size: 80%; padding-right: 15px; }
 #footnote a { color: #999; }
 
-#actions { padding: 0; margin: 0; position:absolute; z-index: 900; background: #f5f5f5; box-shadow: 2px 2px 4px #999; }
+#actions { padding: 0; margin: 0; position:absolute; z-index: 900; background: #f5f5f5; box-shadow: 2px 2px 15px #999; left: 15px; top: 35px; }
 #actions:after { content: " "; position:fixed; top:0; left:0; bottom:0;right:0; z-index: -1;}
 #actions li { list-style:none; }
 #actions a { display:block; color:#333; padding: 8px 20px 8px 10px; border-bottom: 1px solid #ddd; text-decoration: none; }
@@ -84,11 +85,11 @@ ul.wallets a:hover { box-shadow: 0 0 5px #555; }
 #txStatus { max-width:600px; margin:30px auto; padding:10px; overflow:auto;}
 
 #history { list-style: none; padding: 0 10px; max-width: 960px; margin: 15px auto; }
-#history li { box-shadow: 1px 1px 4px #ccc; padding: 10px 10px 10px 75px; min-height: 72px; position: relative; }
-#history li.no-blocks { box-shadow: none; text-align: center; color: #999; font-size: 140%; padding: 20px; }
+#history li { border:1px solid #ccc; margin-top:-1px; padding: 10px 10px 10px 75px; min-height: 72px; position: relative; }
+#history li.no-blocks { border:0; text-align: center; color: #999; font-size: 140%; padding: 20px; }
 #history li.pending { background: #cfc; }
 #history dl { margin: 0; }
-#history dt { float:left; padding-right: 5px; min-width: 80px; }
+#history dt { float:left; padding-right: 5px; min-width: 60px; font-size:80%; }
 #history li>i { position: absolute; top: 13px; left: 9px; }
 
 #landing p { clear:both; padding-bottom: 30px; }
@@ -96,5 +97,8 @@ ul.wallets a:hover { box-shadow: 0 0 5px #555; }
 
 @media (min-width:640px) {
   form { margin-top: 30px; }
+}
+@media (max-width:1020px) {
+  #currentAccount h2 { clear:both; }
 }
 

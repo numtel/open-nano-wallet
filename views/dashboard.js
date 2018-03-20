@@ -18,11 +18,6 @@ window.views.dashboard = function() {
 
   const out = buildTemplate(html`
     <div id="currentAccount">
-      <div class="balance $${details ? '' : 'loading'}">
-          <span class="xrb">${details ? rawToXrb(details.info.balance).toString() : ''}</span>
-          ${details && account.nextWork instanceof Promise ?
-              html`<span class="fiat">$${__`Loading work...`}</span>` : ''}
-      </div>
       <a href="#" class="showMenu" title="$${__`Show Menu`}"><i class="fa fa-bars"></i></a>
       <h1><a href="#" class="showActions" title="$${__`Account Actions`}">$${account.data.name}<i class="fa fa-sort-desc"></i></a></h1>
       <ul id="actions" class="hidden">
@@ -39,6 +34,11 @@ window.views.dashboard = function() {
         <li><a href="#" class="refresh">
           <i class="fa fa-refresh fa-fw"></i>$${__`Refresh`}</a></li>
       </ul>
+      <div class="balance $${details ? '' : 'loading'}">
+          <span class="xrb">${details ? rawToXrb(details.info.balance).toString() : ''}</span>
+          ${details && account.nextWork instanceof Promise ?
+              html`<span class="fiat">$${__`Loading work...`}</span>` : ''}
+      </div>
       <h2 class="dont-break-out">$${account.address}</h2>
     </div>
     <ul id="mainMenu">
@@ -56,6 +56,10 @@ window.views.dashboard = function() {
       ${details && details.pending.length ? details.pending.map((block, index) => html`<li class="pending">
         <i class="fa fa-arrow-left fa-3x fa-fw"></i>
         <dl>
+          ${block.date ? html`
+            <dt>$${__`Date`}:</dt>
+            <dd>$${new Date(block.date).toLocaleString()}</dd>
+          ` : ''}
           <dt>$${__`Pending`}:</dt>
           <dd>
             <a class="external" href="https://www.nanode.co/block/$${block.hash}" title="$${__`View block on explorer`}">
@@ -70,8 +74,8 @@ window.views.dashboard = function() {
           </dd>
           <dt>$${__`Amount`}:</dt>
           <dd>$${rawToXrb(block.amount).toString()}</dd>
-          <dt>$${__`Action`}:</dt>
-          <dd><a href="#" class="acceptPending" data-hash="$${block.hash}">$${__`Accept Pending Block`}</a></dd>
+          <dt>&nbsp;</dt>
+          <dd><button type="button" class="acceptPending" data-hash="$${block.hash}">$${__`Accept Pending Block`}</button></dd>
         </dl>
       </li>`) : ''}
       <li class="no-blocks error hidden">
@@ -84,6 +88,10 @@ window.views.dashboard = function() {
         ${ block.type === 'send' ? html`<i class="fa fa-arrow-right fa-3x fa-fw"></i>` : '' }
         ${ block.type === 'receive' ? html`<i class="fa fa-arrow-left fa-3x fa-fw"></i>` : '' }
         <dl>
+          ${block.date ? html`
+            <dt>$${__`Date`}:</dt>
+            <dd>$${new Date(block.date).toLocaleString()}</dd>
+          ` : ''}
           <dt>$${capitalize(__({raw:[block.type]}))}:</dt>
           <dd>
             <a class="external" href="https://www.nanode.co/block/$${block.hash}" title="$${__`View block on explorer`}">
@@ -136,7 +144,7 @@ window.views.dashboard = function() {
       this.render();
     },
     '.displaySeed click': e => this.render(this.views.showSeed()),
-    '#history a.acceptPending click': (e, tpl, el) => {
+    '#history .acceptPending click': (e, tpl, el) => {
       const block = details.pending
         .filter(blk => blk.hash === el.getAttribute('data-hash'))[0];
       account.acceptPending(block)
