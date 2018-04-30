@@ -1,36 +1,45 @@
-function valueForHash(property, value) {
-  // Transform addresses to public keys
-  if(['destination', 'representative', 'account'].indexOf(property) !== -1) {
-    value = keyFromAccount(value);
-  }
-  return value;
-}
-
 class FieldError extends Error {}
 
 const TYPES = {
   send: 0x02,
   receive: 0x03,
   open: 0x04,
-  change: 0x05
+  change: 0x05,
+  state: 0x06
 };
 
 const REQUIRED_FIELDS = {
   // These are listed in the order that they need to be hashed
-  previous: { types: [ TYPES.send, TYPES.receive, TYPES.change ], length: 32 },
+  previous: { types: [ TYPES.send, TYPES.receive, TYPES.change, TYPES.state ], length: 32 },
   destination: { types: [ TYPES.send ], length: 32 },
-  balance: { types: [ TYPES.send ], length: 16 },
+  balance: { types: [ TYPES.send, TYPES.state ], length: 16 },
   source: { types: [ TYPES.receive, TYPES.open ], length: 32 },
-  representative: { types: [ TYPES.open, TYPES.change ], length: 32 },
-  account: { types: [ TYPES.open ], length: 32 }
+  representative: { types: [ TYPES.open, TYPES.change, TYPES.state ], length: 32 },
+  account: { types: [ TYPES.open, TYPES.state ], length: 32 },
+  link: { types: [ TYPES.state ], length: 32 }
 };
 
+// Specify block types whose field hashing order do not match
+//  the REQUIRED_FIELDS dictionary.
+const SPECIAL_ORDERING = {
+  state: [ 'account', 'previous', 'representative', 'balance', 'link' ]
+};
+
+// Specify block types whose work value is represented in big-endian format
+const BIG_ENDIAN_WORK = [
+  'state'
+];
+
 class Block {
-  constructor(params) {
+  constructor(params, account) {
     this.params = Object.assign({
       type: 'invalid', // Required: String
       // ... other block fields, see REQUIRED_FIELDS
+      // non-standard 'amount' field with receive/open used to calculate
+      //  balance for state block conversion
     }, params);
+
+    this.account = account;
   }
 
   /*
@@ -43,27 +52,57 @@ class Block {
     if(!('type' in block) || !(block.type in TYPES))
       throw new FieldError('type');
 
-    const fields = Object.keys(REQUIRED_FIELDS).reduce((out, param) => {
-      if(REQUIRED_FIELDS[param].types.indexOf(TYPES[block.type]) !== -1) out.push(param);
-      return out;
-    }, []);
+    let blockType = block.type;
+    // Upgrade old transaction block to state block if account requests
+    const stateFields = {};
+
+    if(this.account && this.account.usingStateBlocks) {
+      blockType = 'state';
+      stateFields.account = this.account.address;
+
+      if(!('representative' in block))
+        stateFields.representative = this.account.detailsCache.info.representative;
+
+      switch(block.type) {
+        case 'open':
+          stateFields.previous = zeroPad(0, 32);
+          stateFields.balance = block.amount;
+          stateFields.link = block.source;
+          break;
+        case 'receive':
+          stateFields.balance =
+            Big(this.account.detailsCache.info.balance)
+              .plus(block.amount).toFixed();
+          stateFields.link = block.source;
+          break;
+        case 'send':
+          stateFields.link = block.destination;
+          break;
+        case 'change':
+          stateFields.balance = this.account.detailsCache.info.balance;
+          stateFields.link = zeroPad(0, 32);
+          break;
+      }
+    }
+
+    const fields = blockFields(blockType);
 
     const header = Uint8Array.from([
       0x52, // magic number
       0x43, // 43 for mainnet, 41 for testnet
-      0x05, // version max
-      0x05, // version using
+      0x07, // version max
+      0x07, // version using
       0x01, // version min
       0x03, // type (3 = publish)
       0x00, // extensions 16-bits
-      TYPES[block.type], // extensions 16-bits ( block type )
+      TYPES[blockType], // extensions 16-bits ( block type )
     ]);
 
     const values = concat_uint8(fields.map(field => {
       if(!(field in block))
         throw new FieldError(field)
 
-      const value = hex_uint8(valueForHash(field, block[field]));
+      const value = hex_uint8(valueForHash(field, stateFields[field] || block[field]));
       if(value.length !== REQUIRED_FIELDS[field].length)
         throw new FieldError(field);
 
@@ -75,7 +114,9 @@ class Block {
     const hash = blake2bFinal(context);
 
     const signature = nacl.sign.detached(hash, hex_uint8(accountKey));
-    const work = hex_uint8(block.work).reverse();
+    let work = hex_uint8(block.work);
+    if(BIG_ENDIAN_WORK.indexOf(blockType) === -1)
+      work = work.reverse();
 
     return {
       msg: [ header, values, signature, work ].map(part => uint8_hex(part)).join(''),
@@ -85,3 +126,23 @@ class Block {
 
 }
 
+function valueForHash(property, value) {
+  // Link values of zero are not transformed
+  if(property === 'link' && value === zeroPad(0, 32))
+    return value;
+  // Transform addresses to public keys
+  if(['destination', 'representative', 'account', 'link'].indexOf(property) !== -1) {
+    value = keyFromAccount(value);
+  }
+  return value;
+}
+
+function blockFields(blockType) {
+  if(blockType in SPECIAL_ORDERING)
+    return SPECIAL_ORDERING[blockType];
+
+  return Object.keys(REQUIRED_FIELDS).reduce((out, param) => {
+    if(REQUIRED_FIELDS[param].types.indexOf(TYPES[blockType]) !== -1) out.push(param);
+    return out;
+  }, []);
+}

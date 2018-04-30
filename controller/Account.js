@@ -43,6 +43,7 @@ class Account {
 
     this.details = null; // Replaced with promise immediately
     this.detailsCache = null; // Replaced when loaded
+    this.usingStateBlocks = false;
 
     // Account details, work values are not used in redeem mode
     if(this.wallet.app.redeemCode.raw === null)
@@ -155,7 +156,7 @@ class Account {
         work: result.work,
         amount: sendBlock.amount,
         account: this.address,
-      });
+      }, this);
       rendered = block.sign(this.key);
       return publishBlock(rendered, PUBLISH_RETRIES);
     }).then(result => {
@@ -207,7 +208,7 @@ class Account {
         work: result.work,
         amount: xrbToRaw(amount),
         account: adhocPublic.address,
-      });
+      }, this);
       sendRendered = sendBlock.sign(this.key);
       return this.wallet.app.queueWork(adhocPublic.pubkey);
     })
@@ -285,7 +286,7 @@ class Account {
         work: result.work,
         amount: xrbToRaw(amount),
         account: recipient,
-      });
+      }, this);
       rendered = block.sign(this.key);
       return publishBlock(rendered, PUBLISH_RETRIES);
     }).then(result => {
@@ -321,7 +322,7 @@ class Account {
         previous: result.details.info.frontier,
         representative: newRep,
         work: result.work,
-      });
+      }, this);
       rendered = block.sign(this.key);
       return publishBlock(rendered, PUBLISH_RETRIES);
     }).then(result => {
